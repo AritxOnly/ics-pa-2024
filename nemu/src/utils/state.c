@@ -13,11 +13,13 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
+#include "debug.h"
 #include <utils.h>
 
 NEMUState nemu_state = { .state = NEMU_STOP };
 
 int is_exit_status_bad() {
+  Log("Quit state %d, halt_ret %d", nemu_state.state, nemu_state.halt_ret);
   int good = (nemu_state.state == NEMU_END && nemu_state.halt_ret == 0) ||
     (nemu_state.state == NEMU_QUIT);
   return !good;
