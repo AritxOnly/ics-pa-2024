@@ -114,7 +114,8 @@ static int cmd_x(char *args) {
   sscanf(expr, "%x", &addr);
 
   for (int i = 0; i < n; i++) {
-    paddr_read(addr, 4);
+    word_t data = paddr_read(addr, 4);
+    printf("Addr:0x%x\t\t0x%x\t\t%d\n", addr, data, data);
     addr += 4;
   }
 
