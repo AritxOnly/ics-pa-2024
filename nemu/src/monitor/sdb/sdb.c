@@ -18,6 +18,7 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 #include "sdb.h"
+#include <string.h>
 #include <utils.h>
 
 static int is_batch_mode = false;
@@ -54,6 +55,48 @@ static int cmd_q(char *args) {
   return -1;
 }
 
+/** 
+ * PA1 impl commands
+ * TODO: si [N] command
+ * TODO: info SUBCMD command
+ * TODO: x N EXPR command
+ * TODO: p EXPR command
+ * TODO: w EXPR command
+ * TODO: d N command
+ */
+static int cmd_si(char *args) {
+  char *arg = strtok(NULL, " ");
+  int step;
+
+  if (arg == NULL) {
+    step = 1; // 默认值为1
+  }
+  else {
+    step = atoi(arg);
+  }
+  cpu_exec(step); // CPU执行step步指令
+  return 0;
+}
+
+static int cmd_info(char *args) {
+  char *arg = strtok(NULL, " ");
+  /**
+  * TODO: 1
+  */
+  switch (*arg) {
+    case 'r':
+      // 打印寄存器
+      isa_reg_display();
+      break;
+    case 'w':
+      // 打印监视点
+      
+    default:
+      break;
+  }
+  return 0;
+}
+
 static int cmd_help(char *args);
 
 static struct {
@@ -64,6 +107,12 @@ static struct {
   { "help", "Display information about all supported commands", cmd_help },
   { "c", "Continue the execution of the program", cmd_c },
   { "q", "Exit NEMU", cmd_q },
+  {"si", "Execute N steps. If N isn’t provided, default to 1.", cmd_si},
+  {"info", "Display information based on the specified subcommand.\n\
+            Available Subcommands:\n\
+            \tr  - Print the status of registers.\n\
+            \tw  - Print information about watchpoints.", cmd_info},
+
 
   /* TODO: Add more commands */
 
