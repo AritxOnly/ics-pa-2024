@@ -18,13 +18,16 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 #include "sdb.h"
+#include "memory/paddr.h"
 #include <string.h>
 #include <utils.h>
 
 static int is_batch_mode = false;
 
+
 void init_regex();
 void init_wp_pool();
+void delete_wp(int n);
 
 /* We use the `readline' library to provide more flexibility to read from stdin. */
 static char* rl_gets() {
@@ -83,16 +86,71 @@ static int cmd_info(char *args) {
   /**
   * TODO: 1
   */
-  switch (*arg) {
-    case 'r':
-      // 打印寄存器
-      isa_reg_display();
-      break;
-    case 'w':
-      // 打印监视点
-      
-    default:
-      break;
+  if (strcmp(arg, "r") == 0) {
+    isa_reg_display();
+  } else if (strcmp(arg, "w") == 0) {
+    // watchpoint
+    // to be done
+  } else {
+    printf("Invalid argument\n");
+  }
+  return 0;
+}
+
+static int cmd_x(char *args) {
+  char *arg = strtok(NULL, " ");
+  int n = (arg == NULL) ? (-1) : atoi(arg); // 提取参数n
+  char *expr = strtok(NULL, " ");
+  if (expr == NULL || n == -1) {
+    printf("Invalid Arguments\n");
+    return 0;
+  }
+
+  /**
+   * TODO: 表达式求值
+   */
+
+  paddr_t addr = 0;
+
+  for (int i = 0; i < n; i++) {
+    paddr_read(addr, 4);
+    addr += 4;
+  }
+
+  return 0;
+}
+
+static int cmd_p(char *args) {
+  char *expr = strtok(NULL, " ");
+  if (expr == NULL) {
+    printf("Invalid arguments\n");
+    return 0;
+  }
+  /**
+   * TODO: 表达式求值
+   */
+  return 0;
+}
+
+static int cmd_w(char *args) {
+  char *expr = strtok(NULL, " ");
+  if (expr == NULL) {
+    printf("Invalid arguments\n");
+    return 0;
+  }
+  /**
+   * TODO: 表达式求值
+   */
+  return 0;
+}
+
+static int cmd_d(char *args) {
+  char *arg = strtok(NULL, " ");
+  if (arg == NULL) {
+    printf("Invalid arguments\n");
+  } else {
+    int n = atoi(arg);
+    delete_wp(n);
   }
   return 0;
 }
@@ -112,8 +170,16 @@ static struct {
             Available Subcommands:\n\
             \tr  - Print the status of registers.\n\
             \tw  - Print information about watchpoints.", cmd_info},
-
-
+  {"x", "Use: x N EXPR\n\
+            \tCalculate the EXPR arg as the initial memory pointer\n\
+            \tPrint out the following N values", cmd_x},
+  {"p", "Use: p EXPR\n\
+            \tPrint out the value of the EXPR", cmd_p},
+  {"w", "Use: w EXPR\n\
+            \tSet watchpoint for EXPR", cmd_w},
+  {"d", "Use: d N\n\
+            \tDelete the watchpoint with ID N", cmd_d}
+  
   /* TODO: Add more commands */
 
 };

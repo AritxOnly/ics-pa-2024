@@ -17,6 +17,7 @@
 
 #define NR_WP 32
 
+// Watchpoint链表
 typedef struct watchpoint {
   int NO;
   struct watchpoint *next;
@@ -40,4 +41,11 @@ void init_wp_pool() {
 }
 
 /* TODO: Implement the functionality of watchpoint */
+void delete_wp(int n) { // 删除编号为n的watchpoint
+  if (n < 0 || n >= NR_WP) {
+    printf("Invalid deletion\n");
+  }
+  wp_pool[n - 1].next = wp_pool[n].next;
+  wp_pool[n].NO = 0;
+}
 
