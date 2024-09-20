@@ -171,14 +171,14 @@ static struct {
             \tr  - Print the status of registers.\n\
             \tw  - Print information about watchpoints.", cmd_info},
   {"x", "Use: x N EXPR\n\
-            \tCalculate the EXPR arg as the initial memory pointer\n\
-            \tPrint out the following N values", cmd_x},
+            Calculate the EXPR arg as the initial memory pointer\n\
+            Print out the following N values", cmd_x},
   {"p", "Use: p EXPR\n\
-            \tPrint out the value of the EXPR", cmd_p},
+            Print out the value of the EXPR", cmd_p},
   {"w", "Use: w EXPR\n\
-            \tSet watchpoint for EXPR", cmd_w},
+            Set watchpoint for EXPR", cmd_w},
   {"d", "Use: d N\n\
-            \tDelete the watchpoint with ID N", cmd_d}
+            Delete the watchpoint with ID N", cmd_d}
   
   /* TODO: Add more commands */
 
