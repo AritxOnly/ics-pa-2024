@@ -68,7 +68,7 @@ static int cmd_q(char *args) {
  * TODO: d N command
  */
 static int cmd_si(char *args) {
-  char *arg = strtok(NULL, " ");
+  char *arg = strtok(args, " ");
   int step;
 
   if (arg == NULL) {
@@ -82,7 +82,7 @@ static int cmd_si(char *args) {
 }
 
 static int cmd_info(char *args) {
-  char *arg = strtok(NULL, " ");
+  char *arg = strtok(args, " ");
   /**
   * TODO: 1
   */
@@ -98,7 +98,7 @@ static int cmd_info(char *args) {
 }
 
 static int cmd_x(char *args) {
-  char *arg = strtok(NULL, " ");
+  char *arg = strtok(args, " ");
   char *expr = strtok(NULL, " ");
   if (expr == NULL || arg == NULL) {
     printf("Invalid Arguments\n");
@@ -109,7 +109,7 @@ static int cmd_x(char *args) {
    * TODO: 表达式求值
    */
   int n;
-  paddr_t addr = 0;
+  paddr_t addr;
   sscanf(arg, "%d", &n);
   sscanf(expr, "%x", &addr);
 
