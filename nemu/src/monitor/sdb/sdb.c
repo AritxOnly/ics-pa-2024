@@ -75,7 +75,7 @@ static int cmd_si(char *args) {
     step = 1; // 默认值为1
   }
   else {
-    step = atoi(arg);
+    sscanf(arg, "%d", &step);
   }
   cpu_exec(step); // CPU执行step步指令
   return 0;
@@ -99,9 +99,8 @@ static int cmd_info(char *args) {
 
 static int cmd_x(char *args) {
   char *arg = strtok(NULL, " ");
-  int n = (arg == NULL) ? (-1) : atoi(arg); // 提取参数n
   char *expr = strtok(NULL, " ");
-  if (expr == NULL || n == -1) {
+  if (expr == NULL || arg == NULL) {
     printf("Invalid Arguments\n");
     return 0;
   }
@@ -109,8 +108,10 @@ static int cmd_x(char *args) {
   /**
    * TODO: 表达式求值
    */
-
+  int n;
   paddr_t addr = 0;
+  sscanf(arg, "%d", &n);
+  sscanf(expr, "%x", &addr);
 
   for (int i = 0; i < n; i++) {
     paddr_read(addr, 4);
