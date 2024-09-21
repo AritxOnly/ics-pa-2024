@@ -13,20 +13,24 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
+#include "common.h"
+#include "debug.h"
 #include <isa.h>
 
 /* We use the POSIX regex functions to process regular expressions.
  * Type 'man regex' for more information about POSIX regex functions.
  */
 #include <regex.h>
+#include <stdio.h>
 
 enum {
   TK_NOTYPE = 256, TK_EQ = 255,
 
   /* TODO: Add more token types */
   TK_INT_DEC = 0,
-  TK_BRACKET_L = 1,
-  TK_BRACKET_R = 2,
+  TK_INT_HEX = 1,
+  TK_BRACKET_L = 2,
+  TK_BRACKET_R = 3,
 
 
 };
@@ -115,7 +119,7 @@ static bool make_token(char *e) {
             if (substr_len <= 32) { // 缓冲区未溢出
               strncpy(tokens[nr_token++].str, substr_start, substr_len); 
             } else {
-              // TODO: 处理缓冲区溢出
+              assert(0);
             }
             break;
           default:
@@ -127,6 +131,8 @@ static bool make_token(char *e) {
       }
     }
 
+    Log("nr_token: %d", nr_token);
+
     if (i == NR_REGEX) {
       printf("no match at position %d\n%s\n%*.s^\n", position, e, position, "");
       return false;
@@ -137,6 +143,86 @@ static bool make_token(char *e) {
 }
 
 
+static bool check_parentheses(int p, int q) {
+  Assert(p <= q, "Bad expression");
+  if (tokens[p].type == TK_BRACKET_L && tokens[q].type == TK_BRACKET_R) {
+    int depth = 0;
+    for (int i = p; i <= q; i++) {
+      if (tokens[i].type == TK_BRACKET_L) {
+        depth++;
+      } else if (tokens[i].type == TK_BRACKET_R) {
+        depth--;
+      }
+      if (depth < 0) {
+        Log("Bad expression");
+        return false; // bad expression
+      }
+    }
+    return true;
+  }
+  return false;
+}
+
+static int find_main_operand(int p, int q) {
+  int op = p;
+  int priority = 3;
+  int depth = 0;
+  for (int i = p; i <= q; i++) {
+    if (tokens[i].type == TK_BRACKET_L) {
+      depth++;
+    } else if (tokens[i].type == TK_BRACKET_R) {
+      depth--;
+    }
+    if (depth < 0) {
+      Log("Bad expression");
+      return false; // bad expression
+    }
+    bool is_operand = tokens[i].type == '+' || tokens[i].type == '-' ||
+                      tokens[i].type == '*' || tokens[i].type == '/';
+    if (is_operand && depth == 0) {
+      int cur_prior = (tokens[i].type == '+' || tokens[i].type == '-') ?
+                      1 : 2;
+      if (cur_prior <= priority) {
+        op = i;
+        priority = cur_prior;
+      }
+    }
+  }
+  return op;
+}
+
+static int eval(int p, int q) {
+  Assert(p <= q, "Bad expression");
+  if (p == q) {
+    /* Single token.
+     * For now this token should be a number.
+     * Return the value of the number.
+     */
+    int num;
+    sscanf(tokens[p].str, "%d", &num);
+    return num;
+  }
+  else if (check_parentheses(p, q) == true) {
+    /* The expression is surrounded by a matched pair of parentheses.
+     * If that is the case, just throw away the parentheses.
+     */
+    return eval(p + 1, q - 1);
+  }
+  else {
+    int op = find_main_operand(p, q);
+    int val1 = eval(p, op - 1); // 主运算符左边的值
+    int val2 = eval(op + 1, q); // 主运算符右边的值
+
+    switch (tokens[op].type) {
+      case '+': return val1 + val2;
+      case '-': return val1 - val2;
+      case '*': return val1 * val2;
+      case '/': return val1 / val2;
+      default: assert(0);
+    }
+  }
+}
+
 word_t expr(char *e, bool *success) {
   if (!make_token(e)) {
     *success = false;
@@ -144,7 +230,9 @@ word_t expr(char *e, bool *success) {
   }
 
   /* TODO: Insert codes to evaluate the expression. */
-  TODO();
+  // TODO();
+  int result = eval(0, nr_token);
 
-  return 0;
+  return result;
 }
+
