@@ -19,11 +19,11 @@
 #include <readline/history.h>
 #include "sdb.h"
 #include "memory/paddr.h"
+#include <stdbool.h>
 #include <string.h>
 #include <utils.h>
 
 static int is_batch_mode = false;
-
 
 void init_regex();
 void init_wp_pool();
@@ -99,8 +99,8 @@ static int cmd_info(char *args) {
 
 static int cmd_x(char *args) {
   char *arg = strtok(args, " ");
-  char *expr = strtok(NULL, " ");
-  if (expr == NULL || arg == NULL) {
+  char *exp = strtok(NULL, " ");
+  if (exp == NULL || arg == NULL) {
     printf("Invalid Arguments\n");
     return 0;
   }
@@ -111,7 +111,7 @@ static int cmd_x(char *args) {
   int n;
   paddr_t addr;
   sscanf(arg, "%d", &n);
-  sscanf(expr, "%x", &addr);
+  sscanf(exp, "%x", &addr);
 
   for (int i = 0; i < n; i++) {
     word_t data = paddr_read(addr, 4);
@@ -123,20 +123,22 @@ static int cmd_x(char *args) {
 }
 
 static int cmd_p(char *args) {
-  char *expr = strtok(NULL, " ");
-  if (expr == NULL) {
+  char *exp = strtok(NULL, " ");
+  if (exp == NULL) {
     printf("Invalid arguments\n");
     return 0;
   }
   /**
    * TODO: 表达式求值
    */
+  bool success = false;
+  printf("%d", expr(exp, &success));
   return 0;
 }
 
 static int cmd_w(char *args) {
-  char *expr = strtok(NULL, " ");
-  if (expr == NULL) {
+  char *exp = strtok(NULL, " ");
+  if (exp == NULL) {
     printf("Invalid arguments\n");
     return 0;
   }

@@ -21,9 +21,13 @@
 #include <regex.h>
 
 enum {
-  TK_NOTYPE = 256, TK_EQ,
+  TK_NOTYPE = 256, TK_EQ = 255,
 
   /* TODO: Add more token types */
+  TK_INT_DEC = 0,
+  TK_BRACKET_L = 1,
+  TK_BRACKET_R = 2,
+
 
 };
 
@@ -37,7 +41,16 @@ static struct rule {
    */
 
   {" +", TK_NOTYPE},    // spaces
+
   {"\\+", '+'},         // plus
+  {"\\-", '-'},         // minus
+  {"\\*", '*'},         // multiply
+  {"\\/", '/'},         // divide
+
+  {"\\(", TK_BRACKET_L},  // left bracket
+  {"\\)", TK_BRACKET_R},  // right bracket
+  {"(\\-|\\+)?\\d*", TK_INT_DEC}, // 10 base integer
+
   {"==", TK_EQ},        // equal
 };
 
@@ -95,7 +108,19 @@ static bool make_token(char *e) {
          */
 
         switch (rules[i].token_type) {
-          default: TODO();
+          case TK_NOTYPE:
+            break;
+          case TK_INT_DEC:  // 十进制时将token的内容也存入str
+            tokens[nr_token].type = rules[i].token_type;
+            if (substr_len <= 32) { // 缓冲区未溢出
+              strncpy(tokens[nr_token++].str, substr_start, substr_len); 
+            } else {
+              // TODO: 处理缓冲区溢出
+            }
+            break;
+          default:
+            tokens[nr_token++].type = rules[i].token_type;
+            break;
         }
 
         break;
