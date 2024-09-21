@@ -49,7 +49,7 @@ static struct rule {
 
   {"\\(", TK_BRACKET_L},  // left bracket
   {"\\)", TK_BRACKET_R},  // right bracket
-  {"(\\-|\\+)?\\d*", TK_INT_DEC}, // 10 base integer
+  {"(\\-|\\+)?\\d+", TK_INT_DEC}, // 10 base integer
 
   {"==", TK_EQ},        // equal
 };
