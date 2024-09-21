@@ -41,7 +41,7 @@ static struct rule {
    */
 
   {" +", TK_NOTYPE},    // space
-  {"(\\-|\\+)?\\d+", TK_INT_DEC}, // 10 base integers
+  {"/^-?\\d+$/", TK_INT_DEC}, // 10 base integers
 
   {"\\+", '+'},         // plus
   {"\\-", '-'},         // minus
