@@ -142,7 +142,6 @@ static bool make_token(char *e) {
   return true;
 }
 
-
 static bool check_parentheses(int p, int q) {
   Assert(p <= q, "Bad expression");
   if (tokens[p].type == TK_BRACKET_L && tokens[q].type == TK_BRACKET_R) {
@@ -153,10 +152,9 @@ static bool check_parentheses(int p, int q) {
       } else if (tokens[i].type == TK_BRACKET_R) {
         depth--;
       }
-      if (depth < 0) {
-        Log("Bad expression");
-        return false; // bad expression
-      }
+      if (depth <= 0 && i != q) {
+        return false;
+      } 
     }
     return true;
   }
