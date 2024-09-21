@@ -132,7 +132,7 @@ static int cmd_p(char *args) {
    * TODO: 表达式求值
    */
   bool success = false;
-  printf("%d", expr(exp, &success));
+  printf("%d\n", expr(exp, &success));
   return 0;
 }
 
