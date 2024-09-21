@@ -136,8 +136,7 @@ static int cmd_p(char *args) {
 }
 
 static int cmd_w(char *args) {
-  char *exp = strtok(NULL, " ");
-  if (exp == NULL) {
+  if (args == NULL) {
     printf("Invalid arguments\n");
     return 0;
   }
