@@ -123,8 +123,7 @@ static int cmd_x(char *args) {
 }
 
 static int cmd_p(char *args) {
-  char *exp = strtok(NULL, " ");
-  if (exp == NULL) {
+  if (args == NULL) {
     printf("Invalid arguments\n");
     return 0;
   }
@@ -132,7 +131,7 @@ static int cmd_p(char *args) {
    * TODO: 表达式求值
    */
   bool success = false;
-  printf("%d\n", expr(exp, &success));
+  printf("%d\n", expr(args, &success));
   return 0;
 }
 
