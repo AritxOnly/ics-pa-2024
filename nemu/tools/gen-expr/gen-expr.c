@@ -19,6 +19,7 @@
 #include <time.h>
 #include <assert.h>
 #include <string.h>
+#include <math.h>
 
 // this should be enough
 static char buf[65536] = {};
@@ -31,8 +32,62 @@ static char *code_format =
 "  return 0; "
 "}";
 
+int ptr = 0;
+
+static void gen_rand_expr();
+
+static uint32_t choose(uint32_t n) {
+  if (n == 0) return rand();
+  int r = rand() % n;
+  return r;
+}
+
+static void gen_rand_op() {
+  if (ptr + 1 >= 65536) {
+    ptr = 0;
+    memset(buf, 0, sizeof(buf));
+    gen_rand_expr();
+  }
+  switch (choose(4)) {
+    case 0: buf[ptr++] = '+';  break;
+    case 1: buf[ptr++] = '-';  break;
+    case 2: buf[ptr++] = '*';  break;
+    case 3: buf[ptr++] = '/';  break;
+    default:  assert(0);  break;
+  }
+}
+
+static void gen(char c) {
+  if (ptr + 1 >= 65536) {
+    ptr = 0;
+    memset(buf, 0, sizeof(buf));
+    gen_rand_expr();
+  }
+  buf[ptr++] = c;
+}
+
+static void gen_num() {
+  if (ptr + 1 >= 65536) {
+    ptr = 0;
+    memset(buf, 0, sizeof(buf));
+    gen_rand_expr();
+  }
+  int max_len = 65536 - ptr;
+  max_len = (max_len > 10) ? 0 : max_len;
+  uint32_t num = choose(pow(10, max_len));
+  char str[12]; // should be enough
+  sprintf(str, "%d", num);  // 格式化
+  buf[ptr] = '\0';
+  strcat(buf, str);
+  ptr += strlen(str);
+}
+
 static void gen_rand_expr() {
-  buf[0] = '\0';
+  switch (choose(3)) {
+    case 0: gen_num(); break;
+    case 1: gen('('); gen_rand_expr();  gen(')'); break;
+    default:  gen_rand_expr();  gen_rand_op();  gen_rand_expr();
+  }
 }
 
 int main(int argc, char *argv[]) {

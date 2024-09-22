@@ -21,6 +21,7 @@
  * Type 'man regex' for more information about POSIX regex functions.
  */
 #include <regex.h>
+#include <stdint.h>
 #include <stdio.h>
 
 enum {
@@ -189,7 +190,7 @@ static int find_main_operand(int p, int q) {
   return op;
 }
 
-static int eval(int p, int q) {
+static uint32_t eval(int p, int q) {
   Assert(p <= q, "Bad expression");
   if (p == q) {
     /* Single token.
@@ -208,8 +209,8 @@ static int eval(int p, int q) {
   }
   else {
     int op = find_main_operand(p, q);
-    int val1 = eval(p, op - 1); // 主运算符左边的值
-    int val2 = eval(op + 1, q); // 主运算符右边的值
+    uint32_t val1 = eval(p, op - 1); // 主运算符左边的值
+    uint32_t val2 = eval(op + 1, q); // 主运算符右边的值
 
     switch (tokens[op].type) {
       case '+': return val1 + val2;
