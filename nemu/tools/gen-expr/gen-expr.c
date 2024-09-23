@@ -19,7 +19,6 @@
 #include <time.h>
 #include <assert.h>
 #include <string.h>
-#include <math.h>
 
 // this should be enough
 static char buf[65536] = {};
@@ -35,6 +34,16 @@ static char *code_format =
 int ptr = 0;
 
 static void gen_rand_expr();
+static void gen(char c);
+
+static uint32_t pow(uint32_t x, uint32_t y) {
+  if (y == 0) return 0;
+  int i, res = 1;
+  for (i = 0; i < y; i++) {
+    res *= x;
+  }
+  return res;
+}
 
 static uint32_t choose(uint32_t n) {
   if (n == 0) return rand();
@@ -48,11 +57,12 @@ static void gen_rand_op() {
     memset(buf, 0, sizeof(buf));
     gen_rand_expr();
   }
-  switch (choose(4)) {
+  switch (choose(5)) {
     case 0: buf[ptr++] = '+';  break;
     case 1: buf[ptr++] = '-';  break;
     case 2: buf[ptr++] = '*';  break;
     case 3: buf[ptr++] = '/';  break;
+    case 4: gen(' '); gen_rand_op(); break;
     default:  assert(0);  break;
   }
 }
@@ -63,7 +73,11 @@ static void gen(char c) {
     memset(buf, 0, sizeof(buf));
     gen_rand_expr();
   }
-  buf[ptr++] = c;
+  switch (choose(2)) {
+    case 0: buf[ptr++] = c; break;
+    case 1: gen(' '); gen(c); break;
+    default:  assert(0);  break;
+  }
 }
 
 static void gen_num() {
