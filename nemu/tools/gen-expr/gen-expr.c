@@ -36,7 +36,7 @@ int ptr = 0;
 static void gen_rand_expr();
 static void gen(char c);
 
-static uint32_t pow(uint32_t x, uint32_t y) {
+static uint32_t uint_pow(uint32_t x, uint32_t y) {
   if (y == 0) return 0;
   int i, res = 1;
   for (i = 0; i < y; i++) {
@@ -46,7 +46,7 @@ static uint32_t pow(uint32_t x, uint32_t y) {
 }
 
 static uint32_t choose(uint32_t n) {
-  if (n == 0) return rand();
+  if (n == 0) return rand() % 100000;
   int r = rand() % n;
   return r;
 }
@@ -87,8 +87,8 @@ static void gen_num() {
     gen_rand_expr();
   }
   int max_len = 65536 - ptr;
-  max_len = (max_len > 10) ? 0 : max_len;
-  uint32_t num = choose(pow(10, max_len));
+  max_len = (max_len > 6) ? 0 : max_len;
+  uint32_t num = choose(uint_pow(10, max_len));
   char str[12]; // should be enough
   sprintf(str, "%d", num);  // 格式化
   buf[ptr] = '\0';
