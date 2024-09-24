@@ -32,6 +32,7 @@ static char *code_format =
 "}";
 
 int ptr = 0;
+int recursion_depth = 0;
 
 static void gen_rand_expr();
 static void gen(char c);
@@ -97,11 +98,16 @@ static void gen_num() {
 }
 
 static void gen_rand_expr() {
+  if (recursion_depth >= 15) {
+    gen_num();
+    return;
+  } 
   switch (choose(3)) {
     case 0: gen_num(); break;
     case 1: gen('('); gen_rand_expr();  gen(')'); break;
     default:  gen_rand_expr();  gen_rand_op();  gen_rand_expr();
   }
+  recursion_depth++;
 }
 
 int main(int argc, char *argv[]) {
