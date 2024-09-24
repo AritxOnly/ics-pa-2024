@@ -112,7 +112,7 @@ static bool make_token(char *e) {
          * of tokens, some extra actions should be performed.
          */
 
-        if (nr_token >= 32)  Assert(0, "Tokens overflow");
+        Assert(nr_token < 32, "Tokens overflow!");
 
         switch (rules[i].token_type) {
           case TK_NOTYPE:
