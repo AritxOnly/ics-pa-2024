@@ -244,6 +244,9 @@ static uint32_t eval(int p, int q) {
 }
 
 word_t expr(char *e, bool *success) {
+  // initiallize tokens
+  memset(tokens, 0, sizeof(tokens));  // 清空tokens内容
+
   if (!make_token(e)) {
     *success = false;
     return 0;
