@@ -203,7 +203,7 @@ static int find_main_operand(int p, int q) {
   return op;
 }
 
-static uint32_t eval(int p, int q) {
+static uint32_t eval(int p, int q, bool *success) {
   Assert(p <= q, "Bad expression");
   if (p == q) {
     uint32_t num;
@@ -213,9 +213,10 @@ static uint32_t eval(int p, int q) {
       case TK_INT_HEX:
         sscanf(tokens[p].str, "%x", &num);  break;
       case TK_REG_NAME:
-        bool success = false;
-        num = isa_reg_str2val(tokens[p].str, &success);
-        Assert(success, "Please enter the correct register name");
+        num = isa_reg_str2val(tokens[p].str, success);
+        if (!*success) {
+          printf("Register name incorrect\n");
+        }
         break;
       default:
         assert(0);  break;
@@ -226,12 +227,12 @@ static uint32_t eval(int p, int q) {
     /* The expression is surrounded by a matched pair of parentheses.
      * If that is the case, just throw away the parentheses.
      */
-    return eval(p + 1, q - 1);
+    return eval(p + 1, q - 1, success);
   }
   else {
     int op = find_main_operand(p, q);
-    uint32_t val1 = eval(p, op - 1); // 主运算符左边的值
-    uint32_t val2 = eval(op + 1, q); // 主运算符右边的值
+    uint32_t val1 = eval(p, op - 1, success); // 主运算符左边的值
+    uint32_t val2 = eval(op + 1, q, success); // 主运算符右边的值
 
     switch (tokens[op].type) {
       case '+': return val1 + val2;
@@ -254,7 +255,7 @@ word_t expr(char *e, bool *success) {
 
   /* TODO: Insert codes to evaluate the expression. */
   // TODO();
-  int result = eval(0, nr_token - 1);
+  int result = eval(0, nr_token - 1, success);
 
   return result;
 }
