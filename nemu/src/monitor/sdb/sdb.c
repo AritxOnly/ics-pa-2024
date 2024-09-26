@@ -131,7 +131,7 @@ static int cmd_p(char *args) {
    * TODO: 表达式求值
    */
   bool success = false;
-  printf("%d\n", expr(args, &success));
+  printf("%u\n", expr(args, &success));
   return 0;
 }
 
