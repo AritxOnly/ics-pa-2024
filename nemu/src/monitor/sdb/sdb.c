@@ -130,7 +130,7 @@ static int cmd_p(char *args) {
   /**
    * TODO: 表达式求值
    */
-  bool success = false;
+  bool success = true;
   uint32_t value = expr(args, &success);
   if (success)
     printf("value: %u (0x%x)\n", value, value);
