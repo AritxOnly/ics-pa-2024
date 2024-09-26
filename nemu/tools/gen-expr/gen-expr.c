@@ -33,7 +33,6 @@ static char *code_format =
 
 int ptr = 0;
 int recursion_depth = 0;
-int tokens_num = 0;
 
 static void gen_rand_expr();
 static void gen(char c);
@@ -67,7 +66,6 @@ static void gen_rand_op() {
     case 4: gen(' '); gen_rand_op(); break;
     default:  assert(0);  break;
   }
-  tokens_num++;
 }
 
 static void gen(char c) {
@@ -77,7 +75,7 @@ static void gen(char c) {
     gen_rand_expr();
   }
   switch (choose(2)) {
-    case 0: buf[ptr++] = c; tokens_num++; break;
+    case 0: buf[ptr++] = c; break;
     case 1: gen(' '); gen(c); break;
     default:  assert(0);  break;
   }
@@ -87,7 +85,6 @@ static void gen_num() {
   if (ptr + 1 >= 65536) {
     ptr = 0;
     recursion_depth = 0;
-    tokens_num = 0;
     memset(buf, 0, sizeof(buf));
     gen_rand_expr();
   }
@@ -99,11 +96,10 @@ static void gen_num() {
   buf[ptr] = '\0';
   strcat(buf, str);
   ptr += strlen(str);
-  tokens_num++;
 }
 
 static void gen_rand_expr() {
-  if (recursion_depth >= 5 || tokens_num >= 30) {
+  if (recursion_depth >= 5) {
     gen_num();
     return;
   } 

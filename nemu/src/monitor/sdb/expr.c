@@ -25,14 +25,18 @@
 #include <stdio.h>
 
 enum {
-  TK_NOTYPE = 256, TK_EQ = 255,
+  TK_NOTYPE = 256, 
 
   /* TODO: Add more token types */
   TK_INT_DEC = 0,
   TK_INT_HEX = 1,
-  TK_BRACKET_L = 2,
-  TK_BRACKET_R = 3,
-
+  TK_REG_NAME = 2,
+  TK_BRACKET_L = 3,
+  TK_BRACKET_R = 4,
+  TK_EQ = 5, 
+  TK_UEQ = 6,
+  TK_AND = 7,
+  TK_DEREF = 8
 
 };
 
@@ -47,16 +51,21 @@ static struct rule {
 
   {" +", TK_NOTYPE},    // space
   {"[0-9]+", TK_INT_DEC}, // 10 base integers
+  {"^0x[0-9A-F]+", TK_INT_HEX},  // 16 base integers
+  {"$[$a-z0-9]+", TK_REG_NAME}, // register names
+
+  {"\\(", TK_BRACKET_L},  // left bracket
+  {"\\)", TK_BRACKET_R},  // right bracket
 
   {"\\+", '+'},         // plus
   {"\\-", '-'},         // minus
   {"\\*", '*'},         // multiply
   {"\\/", '/'},         // divide
 
-  {"\\(", TK_BRACKET_L},  // left bracket
-  {"\\)", TK_BRACKET_R},  // right bracket
-
   {"==", TK_EQ},        // equal
+  {"!=", TK_UEQ},     // unequal
+  {"&&", TK_AND},     // and
+  // TODO: pointer dereference
 };
 
 #define NR_REGEX ARRLEN(rules)
@@ -118,6 +127,8 @@ static bool make_token(char *e) {
           case TK_NOTYPE:
             break;
           case TK_INT_DEC:  // 十进制时将token的内容也存入str
+          case TK_INT_HEX:  // 十六进制时同样可以保留0x存入str
+          case TK_REG_NAME:
             tokens[nr_token].type = rules[i].token_type;
             if (substr_len <= 32) { // 缓冲区未溢出
               strncpy(tokens[nr_token++].str, substr_start, substr_len); 
@@ -195,12 +206,20 @@ static int find_main_operand(int p, int q) {
 static uint32_t eval(int p, int q) {
   Assert(p <= q, "Bad expression");
   if (p == q) {
-    /* Single token.
-     * For now this token should be a number.
-     * Return the value of the number.
-     */
-    int num;
-    sscanf(tokens[p].str, "%d", &num);
+    uint32_t num;
+    switch (tokens[p].type) {
+      case TK_INT_DEC:
+        sscanf(tokens[p].str, "%d", &num);  break;
+      case TK_INT_HEX:
+        sscanf(tokens[p].str, "%x", &num);  break;
+      case TK_REG_NAME:
+        bool success = false;
+        num = isa_reg_str2val(tokens[p].str, &success);
+        Assert(success, "Please enter the correct register name");
+        break;
+      default:
+        assert(0);  break;
+    }
     return num;
   }
   else if (check_parentheses(p, q) == true) {
