@@ -52,7 +52,7 @@ static struct rule {
   {" +", TK_NOTYPE},    // space
   {"^0x[0-9A-F]+", TK_INT_HEX},  // 16 base integers
   {"[0-9]+", TK_INT_DEC}, // 10 base integers
-  {"$[$a-z0-9]+", TK_REG_NAME}, // register names
+  {"$[a-z0-9]+", TK_REG_NAME}, // register names
 
   {"\\(", TK_BRACKET_L},  // left bracket
   {"\\)", TK_BRACKET_R},  // right bracket
