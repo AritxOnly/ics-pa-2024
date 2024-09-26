@@ -131,7 +131,11 @@ static int cmd_p(char *args) {
    * TODO: 表达式求值
    */
   bool success = false;
-  printf("%u\n", expr(args, &success));
+  uint32_t value = expr(args, &success);
+  if (success)
+    printf("value: %u (0x%x)\n", value, value);
+  else
+    printf("Invalid expression\n");
   return 0;
 }
 
