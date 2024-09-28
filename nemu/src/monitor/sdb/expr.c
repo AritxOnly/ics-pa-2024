@@ -185,7 +185,7 @@ static bool check_parentheses(int p, int q) {
 
 static int find_main_operand(int p, int q) {
   int op = p;
-  int priority = 3;
+  int priority = 4;
   int depth = 0;
   for (int i = p; i <= q; i++) {
     if (tokens[i].type == TK_BRACKET_L) {
@@ -197,11 +197,18 @@ static int find_main_operand(int p, int q) {
       Log("Bad expression");
       return false; // bad expression
     }
-    bool is_operand = tokens[i].type == '+' || tokens[i].type == '-' ||
-                      tokens[i].type == '*' || tokens[i].type == '/';
-    if (is_operand && depth == 0) {
-      int cur_prior = (tokens[i].type == '+' || tokens[i].type == '-') ?
-                      1 : 2;
+    bool is_operator = false;
+    int cur_prior = 4;
+    switch (tokens[i].type) {
+      case '+': case '-': is_operator = true; cur_prior = 1;  break;
+      case '*': case '/': is_operator = true; cur_prior = 2;  break;
+      case TK_EQ: case TK_UEQ: case TK_AND:  
+        is_operator = true; 
+        cur_prior = 3;  
+        break;
+      default:  is_operator = false;  break;
+    }
+    if (is_operator && depth == 0) {
       if (cur_prior <= priority) {
         op = i;
         priority = cur_prior;
