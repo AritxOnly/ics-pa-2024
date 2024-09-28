@@ -100,6 +100,7 @@ void delete_wp(int n) { // 删除编号为n的watchpoint
   while (cur != NULL) {
     if (cur->NO == n)
       free_wp(cur);
+    cur = cur->next;
   }
   printf("Invalid deletion\n");
 }
@@ -118,7 +119,7 @@ void sdb_wp_display() {
   WP* cur = head;
   bool success = true;
   while (cur) {
-    printf("\t%d: %s\t%u", cur->NO, cur->str, expr(cur->str, &success));
+    printf("\t%d: %s\t%u\n", cur->NO, cur->str, expr(cur->str, &success));
     cur = cur->next;
   }
   if (!success) assert(0);
