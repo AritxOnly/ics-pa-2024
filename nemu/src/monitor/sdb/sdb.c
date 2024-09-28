@@ -28,6 +28,7 @@ static int is_batch_mode = false;
 void init_regex();
 void init_wp_pool();
 void delete_wp(int n);
+void insert_wp(const char* expr);
 
 /* We use the `readline' library to provide more flexibility to read from stdin. */
 static char* rl_gets() {
@@ -144,6 +145,7 @@ static int cmd_w(char *args) {
   /**
    * TODO: 表达式求值
    */
+  insert_wp(args);
   
   return 0;
 }

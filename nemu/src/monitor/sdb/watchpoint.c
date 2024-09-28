@@ -23,6 +23,7 @@ typedef struct watchpoint {
   struct watchpoint *next;
 
   bool is_occupied;
+  char str[32]; // 存储表达式
 
 } WP;
 
@@ -34,30 +35,80 @@ void init_wp_pool() {
   for (i = 0; i < NR_WP; i ++) {
     wp_pool[i].NO = i;
     wp_pool[i].next = (i == NR_WP - 1 ? NULL : &wp_pool[i + 1]);
+    wp_pool[i].is_occupied = false;
   }
 
-  head = NULL;
-  free_ = wp_pool;
+  head = NULL;  // 使用中监视点链表的头节点
+  free_ = wp_pool;  // 未使用监视点链表的头节点
 }
 
 /* TODO: Implement the functionality of watchpoint */
+/* 分配一个新的监视点 */
 WP* new_wp() {
-  for (int i = 0; i < NR_WP; i++) {
-    if (!wp_pool[i].is_occupied)
-      return &wp_pool[i];
+  if (free_ == NULL) {
+    printf("No free watchpoints available!\n");
+    return NULL;
   }
-  assert(0);
-  return NULL;
+
+  // 从free_链表中取出一个监视点
+  WP* wp = free_;
+  free_ = free_->next;
+
+  // 插入到使用中监视点链表的头部
+  wp->next = head;
+  head = wp;
+  wp->is_occupied = true;
+
+  printf("Watchpoint %d allocated, expr %s\n", wp->NO, wp->str);
+  return wp;
 }
 
+/* 释放一个指定的监视点 */
 void free_wp(WP* wp) {
+  if (wp == NULL || !wp->is_occupied) {
+    printf("Invalid watchpoint to free.\n");
+    return;
+  }
+
+  // 从使用中链表中删除
+  if (head == wp) {
+    head = wp->next;
+  } else {
+    WP* cur = head;
+    while (cur != NULL && cur->next != wp) {
+      cur = cur->next;
+    }
+    if (cur != NULL) {
+      cur->next = wp->next;
+    }
+  }
+
+  // 将wp返回到free_链表的头部
+  wp->next = free_;
+  free_ = wp;
   wp->is_occupied = false;
-  wp->NO = 0;
+  memset(wp->str, 0, sizeof(wp->str));
+
+  printf("Watchpoint %d freed.\n", wp->NO);
 }
 
 void delete_wp(int n) { // 删除编号为n的watchpoint
   if (n < 0 || n >= NR_WP) {
     printf("Invalid deletion\n");
   }
-  free_wp(&wp_pool[n]);
+  WP* cur = head;
+  while (cur != NULL) {
+    if (cur->NO == n)
+      free_wp(cur);
+  }
+  printf("Invalid deletion\n");
+}
+
+void insert_wp(const char* expr) {
+  WP* wp = new_wp();
+  if (wp == NULL) {
+    return;
+  } else {
+    strncpy(wp->str, expr, 32);
+  }
 }
