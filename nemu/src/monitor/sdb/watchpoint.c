@@ -24,6 +24,7 @@ typedef struct watchpoint {
 
   bool is_occupied;
   char str[32]; // 存储表达式
+  word_t val;   // 存储表达式的值
 
 } WP;
 
@@ -116,13 +117,18 @@ void insert_wp(const char* expr) {
   }
 }
 
-void sdb_wp_display() {
+bool sdb_wp_display() {
   printf("Activated registers status\n");
   WP* cur = head;
   bool success = true;
+  bool is_changed = false;
   while (cur) {
-    printf("  %d:\t%s == %u\n", cur->NO, cur->str, expr(cur->str, &success));
+    word_t val = expr(cur->str, &success);
+    is_changed = is_changed || (val != cur->val);
+    cur->val = val;
+    printf("  %d:\t%s = %u\n", cur->NO, cur->str, cur->val);
     cur = cur->next;
   }
   if (!success) assert(0);
+  return is_changed;
 }

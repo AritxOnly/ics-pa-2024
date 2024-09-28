@@ -29,7 +29,7 @@ void init_regex();
 void init_wp_pool();
 void delete_wp(int n);
 void insert_wp(const char* expr);
-void sdb_wp_display();
+bool sdb_wp_display();
 
 /* We use the `readline' library to provide more flexibility to read from stdin. */
 static char* rl_gets() {
