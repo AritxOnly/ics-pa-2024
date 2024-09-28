@@ -29,6 +29,7 @@ void init_regex();
 void init_wp_pool();
 void delete_wp(int n);
 void insert_wp(const char* expr);
+void sdb_wp_display();
 
 /* We use the `readline' library to provide more flexibility to read from stdin. */
 static char* rl_gets() {
@@ -90,8 +91,7 @@ static int cmd_info(char *args) {
   if (strcmp(arg, "r") == 0) {
     isa_reg_display();
   } else if (strcmp(arg, "w") == 0) {
-    // watchpoint
-    // to be done
+    sdb_wp_display();
   } else {
     printf("Invalid argument\n");
   }

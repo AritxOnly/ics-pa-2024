@@ -59,7 +59,7 @@ WP* new_wp() {
   head = wp;
   wp->is_occupied = true;
 
-  printf("Watchpoint %d allocated, expr %s\n", wp->NO, wp->str);
+  printf("Watchpoint %d allocated\n", wp->NO);
   return wp;
 }
 
@@ -111,4 +111,15 @@ void insert_wp(const char* expr) {
   } else {
     strncpy(wp->str, expr, 32);
   }
+}
+
+void sdb_wp_display() {
+  printf("Activated registers status\n");
+  WP* cur = head;
+  bool success = true;
+  while (!cur) {
+    printf("\t%d: %s\t%u", cur->NO, cur->str, expr(cur->str, &success));
+    cur = cur->next;
+  }
+  if (!success) assert(0);
 }
