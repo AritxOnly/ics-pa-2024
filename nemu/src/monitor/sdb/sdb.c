@@ -127,13 +127,10 @@ static int cmd_p(char *args) {
     printf("Invalid arguments\n");
     return 0;
   }
-  /**
-   * TODO: 表达式求值
-   */
   bool success = true;
   uint32_t value = expr(args, &success);
   if (success)
-    printf("value: %u (0x%x)\n", value, value);
+    printf("result: %u (0x%x)\n", value, value);
   else
     printf("Invalid expression\n");
   return 0;
@@ -147,6 +144,7 @@ static int cmd_w(char *args) {
   /**
    * TODO: 表达式求值
    */
+  
   return 0;
 }
 

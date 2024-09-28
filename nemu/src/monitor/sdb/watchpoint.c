@@ -22,7 +22,7 @@ typedef struct watchpoint {
   int NO;
   struct watchpoint *next;
 
-  /* TODO: Add more members if necessary */
+  bool is_occupied;
 
 } WP;
 
@@ -41,11 +41,23 @@ void init_wp_pool() {
 }
 
 /* TODO: Implement the functionality of watchpoint */
+WP* new_wp() {
+  for (int i = 0; i < NR_WP; i++) {
+    if (!wp_pool[i].is_occupied)
+      return &wp_pool[i];
+  }
+  assert(0);
+  return NULL;
+}
+
+void free_wp(WP* wp) {
+  wp->is_occupied = false;
+  wp->NO = 0;
+}
+
 void delete_wp(int n) { // 删除编号为n的watchpoint
   if (n < 0 || n >= NR_WP) {
     printf("Invalid deletion\n");
   }
-  wp_pool[n - 1].next = wp_pool[n].next;
-  wp_pool[n].NO = 0;
+  free_wp(&wp_pool[n]);
 }
-

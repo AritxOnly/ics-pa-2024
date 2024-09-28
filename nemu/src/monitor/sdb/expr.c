@@ -24,6 +24,14 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#define NOT_A_NUMBER(i) (tokens[i].type == '+' || tokens[i].type == '-' \
+      || tokens[i].type == '*' || tokens[i].type == '/' \
+      || tokens[i].type == TK_BRACKET_L || tokens[i].type == TK_BRACKET_R \
+      || tokens[i].type == TK_AND || tokens[i].type == TK_EQ \
+      || tokens[i].type == TK_UEQ)
+
+word_t paddr_read(paddr_t addr, int len);
+
 enum {
   TK_NOTYPE = 256, 
 
@@ -203,10 +211,10 @@ static int find_main_operand(int p, int q) {
   return op;
 }
 
-static uint32_t eval(int p, int q, bool *success) {
+static word_t eval(int p, int q, bool *success) {
   Assert(p <= q, "Bad expression");
   if (p == q) {
-    uint32_t num;
+    word_t num;
     switch (tokens[p].type) {
       case TK_INT_DEC:
         sscanf(tokens[p].str, "%d", &num);  break;
@@ -223,6 +231,10 @@ static uint32_t eval(int p, int q, bool *success) {
     }
     return num;
   }
+  else if (tokens[p].type == TK_DEREF && p == q - 1) {
+    paddr_t addr = eval(q, q, success);
+    return paddr_read(addr, 4);
+  }
   else if (check_parentheses(p, q) == true) {
     /* The expression is surrounded by a matched pair of parentheses.
      * If that is the case, just throw away the parentheses.
@@ -231,8 +243,8 @@ static uint32_t eval(int p, int q, bool *success) {
   }
   else {
     int op = find_main_operand(p, q);
-    uint32_t val1 = eval(p, op - 1, success); // 主运算符左边的值
-    uint32_t val2 = eval(op + 1, q, success); // 主运算符右边的值
+    word_t val1 = eval(p, op - 1, success); // 主运算符左边的值
+    word_t val2 = eval(op + 1, q, success); // 主运算符右边的值
 
     switch (tokens[op].type) {
       case '+': return val1 + val2;
@@ -253,9 +265,14 @@ word_t expr(char *e, bool *success) {
     return 0;
   }
 
+  for (int i = 0; i < nr_token; i++) {
+    if (tokens[i].type == '*' && (i == 0 || NOT_A_NUMBER(i - 1))) {
+      tokens[i].type = TK_DEREF;
+    }
+  }
+
   /* TODO: Insert codes to evaluate the expression. */
-  // TODO();
-  int result = eval(0, nr_token - 1, success);
+  word_t result = eval(0, nr_token - 1, success);
 
   return result;
 }
