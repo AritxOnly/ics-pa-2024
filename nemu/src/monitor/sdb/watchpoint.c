@@ -121,7 +121,7 @@ void sdb_wp_display() {
   WP* cur = head;
   bool success = true;
   while (cur) {
-    printf("  %d: %s\t == %u\n", cur->NO, cur->str, expr(cur->str, &success));
+    printf("  %d:\t%s == %u\n", cur->NO, cur->str, expr(cur->str, &success));
     cur = cur->next;
   }
   if (!success) assert(0);
