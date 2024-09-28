@@ -54,7 +54,7 @@ WP* new_wp() {
   WP* wp = free_;
   free_ = free_->next;
 
-  // 插入到使用中监视点链表的头部
+  // 插入到使用中监视点链表的头部 
   wp->next = head;
   head = wp;
   wp->is_occupied = true;
@@ -117,7 +117,7 @@ void sdb_wp_display() {
   printf("Activated registers status\n");
   WP* cur = head;
   bool success = true;
-  while (!cur) {
+  while (cur) {
     printf("\t%d: %s\t%u", cur->NO, cur->str, expr(cur->str, &success));
     cur = cur->next;
   }
