@@ -28,7 +28,7 @@
       || tokens[i].type == '*' || tokens[i].type == '/' \
       || tokens[i].type == TK_BRACKET_L || tokens[i].type == TK_BRACKET_R \
       || tokens[i].type == TK_AND || tokens[i].type == TK_EQ \
-      || tokens[i].type == TK_UEQ)
+      || tokens[i].type == TK_UEQ || tokens[i].type == TK_DEREF)
 
 word_t paddr_read(paddr_t addr, int len);
 
