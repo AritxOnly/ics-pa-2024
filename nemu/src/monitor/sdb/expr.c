@@ -276,6 +276,9 @@ word_t expr(char *e, bool *success) {
   }
 
   for (int i = 0; i < nr_token; i++) {
+    if (i > 0) {
+      Log("Not a number at %d: %d", i, NOT_A_NUMBER(i - 1));
+    }
     if (tokens[i].type == '*' && (i == 0 || NOT_A_NUMBER(i - 1))) {
       Log("nr_token[%d] is set to TK_DEREF", i);
       tokens[i].type = TK_DEREF;
