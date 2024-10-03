@@ -238,8 +238,8 @@ static word_t eval(int p, int q, bool *success) {
     }
     return num;
   }
-  else if (tokens[p].type == TK_DEREF && p == q - 1) {
-    paddr_t addr = eval(q, q, success);
+  else if (tokens[p].type == TK_DEREF) {
+    paddr_t addr = eval(p + 1, q, success);
     return paddr_read(addr, 4);
   }
   else if (check_parentheses(p, q) == true) {
