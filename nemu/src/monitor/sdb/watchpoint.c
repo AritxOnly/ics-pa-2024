@@ -114,7 +114,9 @@ void insert_wp(const char* expr) {
   if (wp == NULL) {
     return;
   } else {
-    strlcpy(wp->str, expr, 32);
+    int expr_len = strlen(expr);
+    if (expr_len >= 32) assert(0);
+    strncpy(wp->str, expr, expr_len);
   }
 }
 
