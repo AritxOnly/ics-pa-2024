@@ -114,7 +114,7 @@ void insert_wp(const char* expr) {
   if (wp == NULL) {
     return;
   } else {
-    strncpy(wp->str, expr, 32);
+    strlcpy(wp->str, expr, 32);
   }
 }
 
