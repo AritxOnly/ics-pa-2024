@@ -44,7 +44,8 @@ enum {
   TK_EQ = 5, 
   TK_UEQ = 6,
   TK_AND = 7,
-  TK_DEREF = 8
+  TK_DEREF = 8,
+  TK_NEG = 9
 
 };
 
@@ -242,6 +243,10 @@ static word_t eval(int p, int q, bool *success) {
     paddr_t addr = eval(p + 1, q, success);
     return paddr_read(addr, 4);
   }
+  else if (tokens[p].type == TK_NEG) {
+    word_t val = eval(p + 1, q, success);
+    return -val;
+  }
   else if (check_parentheses(p, q) == true) {
     /* The expression is surrounded by a matched pair of parentheses.
      * If that is the case, just throw away the parentheses.
@@ -277,8 +282,12 @@ word_t expr(char *e, bool *success) {
 
   for (int i = 0; i < nr_token; i++) {
     if (tokens[i].type == '*' && (i == 0 || NOT_A_NUMBER(i - 1))) {
-      Log("nr_token[%d] is set to TK_DEREF", i);
+      Log("tokens[%d] is set to TK_DEREF", i);
       tokens[i].type = TK_DEREF;
+    } 
+    else if (tokens[i].type == '-' && (i == 0 || NOT_A_NUMBER(i - 1))) {
+      Log("tokens[%d] is set to TK_NEG", i);
+      tokens[i].type = TK_NEG;
     }
   }
 
