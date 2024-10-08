@@ -24,7 +24,7 @@ typedef struct watchpoint {
   struct watchpoint *next;
 
   bool is_occupied;
-  char str[32]; // 存储表达式
+  char str[256]; // 存储表达式
   word_t val;   // 存储表达式的值
 
 } WP;
@@ -115,8 +115,9 @@ void insert_wp(const char* expr) {
     return;
   } else {
     int expr_len = strlen(expr);
-    if (expr_len >= 32) assert(0);
-    strncpy(wp->str, expr, expr_len);
+    if (expr_len >= 255) assert(0);
+    // strncpy(wp->str, expr, expr_len);
+    memcpy(wp->str, expr, sizeof(*expr));
   }
 }
 
