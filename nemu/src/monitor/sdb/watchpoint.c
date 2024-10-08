@@ -117,7 +117,7 @@ void insert_wp(const char* expr) {
     int expr_len = strlen(expr);
     if (expr_len >= 255) assert(0);
     // strncpy(wp->str, expr, expr_len);
-    memcpy(wp->str, expr, sizeof(*expr));
+    memcpy(wp->str, expr, expr_len + 1);
   }
 }
 
