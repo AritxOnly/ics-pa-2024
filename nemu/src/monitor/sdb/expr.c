@@ -103,7 +103,9 @@ typedef struct token {
   char str[32];
 } Token;
 
-static Token tokens[256] __attribute__((used)) = {};
+#define TOKEN_NUMS 256
+
+static Token tokens[TOKEN_NUMS] __attribute__((used)) = {};
 static int nr_token __attribute__((used))  = 0;
 
 static bool make_token(char *e) {
@@ -130,7 +132,7 @@ static bool make_token(char *e) {
          * of tokens, some extra actions should be performed.
          */
 
-        Assert(nr_token < 256, "Tokens overflow!");
+        Assert(nr_token < TOKEN_NUMS, "Tokens overflow!");
 
         switch (rules[i].token_type) {
           case TK_NOTYPE:
