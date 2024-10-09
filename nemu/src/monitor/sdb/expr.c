@@ -30,7 +30,7 @@
       || tokens[i].type == TK_UEQ || tokens[i].type == TK_DEREF \
       || tokens[i].type == TK_NEG)
 
-word_t paddr_read(paddr_t addr, int len);
+word_t vaddr_read(vaddr_t addr, int len);
 
 enum {
   TK_NOTYPE = 256, 
@@ -241,10 +241,6 @@ static word_t eval(int p, int q, bool *success) {
     }
     return num;
   }
-  // else if (tokens[p].type == TK_DEREF) {
-  //   paddr_t addr = eval(p + 1, q, success);
-  //   return paddr_read(addr, 4);
-  // }
   else if (check_parentheses(p, q) == true) {
     /* The expression is surrounded by a matched pair of parentheses.
      * If that is the case, just throw away the parentheses.
@@ -271,7 +267,7 @@ static word_t eval(int p, int q, bool *success) {
           return -val;
       } else if (op_type == TK_DEREF) {
         for (int i = 0; i < op_count; i++) {
-          val = paddr_read((paddr_t) val, 4);
+          val = vaddr_read((vaddr_t) val, 4);
         }
         return val;
       }
