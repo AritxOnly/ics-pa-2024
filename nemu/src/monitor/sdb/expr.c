@@ -221,24 +221,6 @@ static int find_main_operand(int p, int q) {
   return op;
 }
 
-// static int find_right_bracket(int left_pos, int q, bool *success) {
-//   Assert(left_pos < q, "Can't find right bracket, args wrong!");
-//   int depth = 1;
-//   for (int i = left_pos + 1; i <= q; i++) {
-//     if (tokens[i].type == TK_BRACKET_R) {
-//       depth--;
-//     } else if (tokens[i].type == TK_BRACKET_L) {
-//       depth++;
-//     }
-//     if (depth == 0) {
-//       *success = true;
-//       return i;
-//     }
-//   }
-//   *success = false;
-//   return -1;
-// }
-
 static word_t eval(int p, int q, bool *success) {
   Assert(p <= q, "Bad expression");
   if (p == q) {
@@ -259,10 +241,10 @@ static word_t eval(int p, int q, bool *success) {
     }
     return num;
   }
-  else if (tokens[p].type == TK_DEREF) {
-    paddr_t addr = eval(p + 1, q, success);
-    return paddr_read(addr, 4);
-  }
+  // else if (tokens[p].type == TK_DEREF) {
+  //   paddr_t addr = eval(p + 1, q, success);
+  //   return paddr_read(addr, 4);
+  // }
   else if (check_parentheses(p, q) == true) {
     /* The expression is surrounded by a matched pair of parentheses.
      * If that is the case, just throw away the parentheses.
@@ -271,22 +253,30 @@ static word_t eval(int p, int q, bool *success) {
   }
   else {
     int op = find_main_operand(p, q);
-    if (tokens[op].type == TK_NEG) {    // 处理负号
-      // 统计连续的 '~' 运算符数量
-      int neg_count = 1;
+    if (tokens[op].type == TK_NEG || tokens[op].type == TK_DEREF) {    // 处理负号和解引用
+      // 统计连续的运算符数量
+      int op_type = tokens[op].type;
+      int op_count = 1;
       int current_op = op;
-      while (current_op > p && tokens[current_op - 1].type == TK_NEG) {
-        neg_count++;
+      while (current_op > p && tokens[current_op - 1].type == op_type) {
+        op_count++;
         current_op--;
       }
       word_t val = eval(op + 1, q, success);
       if (!*success) return 0;
-      if (neg_count % 2 == 0)
+      if (op_type == TK_NEG) {
+        if (op_count % 2 == 0)
+          return val;
+        else
+          return -val;
+      } else if (op_type == TK_DEREF) {
+        for (int i = 0; i < op_count; i++) {
+          val = paddr_read((paddr_t) val, 4);
+        }
         return val;
-      else
-        return -val;
+      }
     }
-    
+
     word_t val1 = eval(p, op - 1, success); // 主运算符左边的值
     word_t val2 = eval(op + 1, q, success); // 主运算符右边的值
 
