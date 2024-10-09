@@ -199,7 +199,7 @@ static int find_main_operand(int p, int q) {
       return false; // bad expression
     }
     bool is_operator = false;
-    int cur_prior = 4;
+    int cur_prior = 5;
     switch (tokens[i].type) {
       case '+': case '-': is_operator = true; cur_prior = 1;  break;
       case '*': case '/': is_operator = true; cur_prior = 2;  break;
@@ -207,6 +207,8 @@ static int find_main_operand(int p, int q) {
         is_operator = true; 
         cur_prior = 3;  
         break;
+      case TK_NEG:
+        is_operator = true; cur_prior = 4;  break;
       default:  is_operator = false;  break;
     }
     if (is_operator && depth == 0) {
@@ -219,23 +221,23 @@ static int find_main_operand(int p, int q) {
   return op;
 }
 
-static int find_right_bracket(int left_pos, int q, bool *success) {
-  Assert(left_pos < q, "Can't find right bracket, args wrong!");
-  int depth = 1;
-  for (int i = left_pos + 1; i <= q; i++) {
-    if (tokens[i].type == TK_BRACKET_R) {
-      depth--;
-    } else if (tokens[i].type == TK_BRACKET_L) {
-      depth++;
-    }
-    if (depth == 0) {
-      *success = true;
-      return i;
-    }
-  }
-  *success = false;
-  return -1;
-}
+// static int find_right_bracket(int left_pos, int q, bool *success) {
+//   Assert(left_pos < q, "Can't find right bracket, args wrong!");
+//   int depth = 1;
+//   for (int i = left_pos + 1; i <= q; i++) {
+//     if (tokens[i].type == TK_BRACKET_R) {
+//       depth--;
+//     } else if (tokens[i].type == TK_BRACKET_L) {
+//       depth++;
+//     }
+//     if (depth == 0) {
+//       *success = true;
+//       return i;
+//     }
+//   }
+//   *success = false;
+//   return -1;
+// }
 
 static word_t eval(int p, int q, bool *success) {
   Assert(p <= q, "Bad expression");
@@ -261,21 +263,6 @@ static word_t eval(int p, int q, bool *success) {
     paddr_t addr = eval(p + 1, q, success);
     return paddr_read(addr, 4);
   }
-  else if (tokens[p].type == TK_NEG) {
-    // word_t val = eval(p + 1, q, success);
-    word_t val = 0;
-    if (tokens[p + 1].type == TK_BRACKET_L) {
-      int r = find_right_bracket(p + 1, q, success);
-      Assert(*success, "Can't find right bracket!");
-      val = eval(p + 1, r, success);
-    } else if (tokens[p + 1].type == TK_INT_HEX ||
-               tokens[p + 1].type == TK_INT_DEC ||
-               tokens[p + 1].type == TK_REG_NAME) {
-      val = eval(p + 1, p + 1, success);
-      Assert(*success, "Can't find right bracket!");
-    }
-    return -val;
-  }
   else if (check_parentheses(p, q) == true) {
     /* The expression is surrounded by a matched pair of parentheses.
      * If that is the case, just throw away the parentheses.
@@ -284,6 +271,22 @@ static word_t eval(int p, int q, bool *success) {
   }
   else {
     int op = find_main_operand(p, q);
+    if (tokens[op].type == TK_NEG) {    // 处理负号
+      // 统计连续的 '~' 运算符数量
+      int neg_count = 1;
+      int current_op = op;
+      while (current_op > p && tokens[current_op - 1].type == TK_NEG) {
+        neg_count++;
+        current_op--;
+      }
+      word_t val = eval(op + 1, q, success);
+      if (!*success) return 0;
+      if (neg_count % 2 == 0)
+        return val;
+      else
+        return -val;
+    }
+    
     word_t val1 = eval(p, op - 1, success); // 主运算符左边的值
     word_t val2 = eval(op + 1, q, success); // 主运算符右边的值
 
