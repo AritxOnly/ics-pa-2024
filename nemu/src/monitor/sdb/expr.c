@@ -219,6 +219,24 @@ static int find_main_operand(int p, int q) {
   return op;
 }
 
+static int find_right_bracket(int left_pos, int q, bool *success) {
+  Assert(left_pos < q, "Can't find right bracket, args wrong!");
+  int depth = 1;
+  for (int i = left_pos + 1; i <= q; i++) {
+    if (tokens[i].type == TK_BRACKET_R) {
+      depth--;
+    } else if (tokens[i].type == TK_BRACKET_L) {
+      depth++;
+    }
+    if (depth == 0) {
+      *success = true;
+      return i;
+    }
+  }
+  *success = false;
+  return -1;
+}
+
 static word_t eval(int p, int q, bool *success) {
   Assert(p <= q, "Bad expression");
   if (p == q) {
@@ -244,7 +262,18 @@ static word_t eval(int p, int q, bool *success) {
     return paddr_read(addr, 4);
   }
   else if (tokens[p].type == TK_NEG) {
-    word_t val = eval(p + 1, q, success);
+    // word_t val = eval(p + 1, q, success);
+    word_t val = 0;
+    if (tokens[p + 1].type == TK_BRACKET_L) {
+      int r = find_right_bracket(p + 1, q, success);
+      Assert(*success, "Can't find right bracket!");
+      val = eval(p + 1, r, success);
+    } else if (tokens[p + 1].type == TK_INT_HEX ||
+               tokens[p + 1].type == TK_INT_DEC ||
+               tokens[p + 1].type == TK_REG_NAME) {
+      val = eval(p + 1, p + 1, success);
+      Assert(*success, "Can't find right bracket!");
+    }
     return -val;
   }
   else if (check_parentheses(p, q) == true) {
