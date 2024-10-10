@@ -59,7 +59,7 @@ static struct rule {
    */
 
   {" +", TK_NOTYPE},    // space
-  {"^0x[0-9A-F]+", TK_INT_HEX},  // 16 base integers
+  {"^0x[0-9A-Fa-f]+", TK_INT_HEX},  // 16 base integers
   {"[0-9]+", TK_INT_DEC}, // 10 base integers
   {"^\\$+\\w+", TK_REG_NAME}, // register names
 
