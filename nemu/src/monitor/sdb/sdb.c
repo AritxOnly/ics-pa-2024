@@ -18,7 +18,8 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 #include "sdb.h"
-#include "memory/paddr.h"
+#include "debug.h"
+#include "memory/vaddr.h"
 #include <stdbool.h>
 #include <string.h>
 #include <utils.h>
@@ -103,16 +104,15 @@ static int cmd_x(char *args) {
     return 0;
   }
 
-  /**
-   * TODO: 表达式求值
-   */
   int n;
-  paddr_t addr;
+  vaddr_t addr;
+  bool succ = true;
   sscanf(arg, "%d", &n);
-  sscanf(exp, "%x", &addr);
+  addr = expr(exp, &succ);
+  Assert(succ, "Calculate expression fault!");
 
   for (int i = 0; i < n; i++) {
-    word_t data = paddr_read(addr, 4);
+    word_t data = vaddr_read(addr, 4);
     printf("Addr:0x%x\t\t0x%x\t\t%d\n", addr, data, data);
     addr += 4;
   }
@@ -230,7 +230,7 @@ void sdb_mainloop() {
     if (cmd == NULL) { continue; }
 
     /* treat the remaining string as the arguments,
-     * which may need further parsing
+     * which may need further rsing
      */
     char *args = cmd + strlen(cmd) + 1;
     if (args >= str_end) {

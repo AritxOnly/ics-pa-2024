@@ -122,7 +122,7 @@ void insert_wp(const char* expr) {
 }
 
 bool sdb_wp_display() {
-  printf("Activated registers status\n");
+  printf("Activated watchpoints status\n");
   WP* cur = head;
   bool success = true;
   bool is_changed = false;
