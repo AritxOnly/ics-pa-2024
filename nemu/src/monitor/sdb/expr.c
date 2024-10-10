@@ -74,7 +74,6 @@ static struct rule {
   {"==", TK_EQ},        // equal
   {"!=", TK_UEQ},     // unequal
   {"&&", TK_AND},     // and
-  // TODO: pointer dereference
 };
 
 #define NR_REGEX ARRLEN(rules)
