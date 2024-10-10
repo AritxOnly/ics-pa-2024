@@ -31,84 +31,63 @@ static char *code_format =
 "  return 0; "
 "}";
 
-int ptr = 0;
 int recursion_depth = 0;
 
 static void gen_rand_expr();
 static void gen(char c);
 
-static uint32_t uint_pow(uint32_t x, uint32_t y) {
-  if (y == 0) return 0;
-  int i, res = 1;
-  for (i = 0; i < y; i++) {
-    res *= x;
-  }
-  return res;
-}
+// static uint32_t uint_pow(uint32_t x, uint32_t y) {
+//   if (y == 0) return 0;
+//   int i, res = 1;
+//   for (i = 0; i < y; i++) {
+//     res *= x;
+//   }
+//   return res;
+// }
 
 static uint32_t choose(uint32_t n) {
-  if (n == 0) return rand() % 100000;
   int r = rand() % n;
   return r;
 }
 
 static void gen_rand_op() {
-  if (ptr + 1 >= 65536) {
-    ptr = 0;
-    memset(buf, 0, sizeof(buf));
-    gen_rand_expr();
-  }
-  switch (choose(5)) {
-    case 0: buf[ptr++] = '+';  break;
-    case 1: buf[ptr++] = '-';  break;
-    case 2: buf[ptr++] = '*';  break;
-    case 3: buf[ptr++] = '/';  break;
-    case 4: gen(' '); gen_rand_op(); break;
-    default:  assert(0);  break;
-  }
+  char operands[] = {'+', '-', '*', '/'};
+  char str[] = {operands[choose(4)], '\0'};
+  assert(strlen(buf) + 1 < 30000);
+  strcat(buf, str);
 }
 
 static void gen(char c) {
-  if (ptr + 1 >= 65536) {
-    ptr = 0;
-    memset(buf, 0, sizeof(buf));
-    gen_rand_expr();
-  }
-  switch (choose(2)) {
-    case 0: buf[ptr++] = c; break;
-    case 1: gen(' '); gen(c); break;
-    default:  assert(0);  break;
-  }
+  char str[] = {c, '\0'};
+  assert(strlen(buf) + 1 < 30000);
+  strcat(buf, str);
 }
 
 static void gen_num() {
-  if (ptr + 1 >= 65536) {
-    ptr = 0;
-    recursion_depth = 0;
-    memset(buf, 0, sizeof(buf));
-    gen_rand_expr();
+  char num_str[32];
+  sprintf(num_str, "%d", choose((unsigned)(-1)));
+  assert(strlen(buf) + strlen(num_str) < 30000);
+  strcat(buf, num_str);
+}
+
+static void gen_space() {
+  int cycle = choose(3);
+  for (int i = 0; i < cycle; i++) {
+    if (choose(100) > 90) {
+      assert(strlen(buf) + 1 < 30000);
+      strcat(buf, " ");
+    }
   }
-  int max_len = 65536 - ptr;
-  max_len = (max_len > 6) ? 0 : max_len;
-  uint32_t num = choose(uint_pow(10, max_len));
-  char str[12]; // should be enough
-  sprintf(str, "%d", num);  // 格式化
-  buf[ptr] = '\0';
-  strcat(buf, str);
-  ptr += strlen(str);
 }
 
 static void gen_rand_expr() {
-  if (recursion_depth >= 5) {
-    gen_num();
-    return;
-  } 
+  gen_space();
   switch (choose(3)) {
     case 0: gen_num(); break;
     case 1: gen('('); gen_rand_expr();  gen(')'); break;
     default:  gen_rand_expr();  gen_rand_op();  gen_rand_expr();
   }
-  recursion_depth++;
+  gen_space();
 }
 
 int main(int argc, char *argv[]) {
