@@ -88,5 +88,6 @@ int isa_exec_once(Decode *s) {
 
 static void jal(int rd, int imm, Decode *s) {
   s->pc += imm;
+  s->dnpc = s->pc;
   R(rd) = s->pc + 4;
 }
