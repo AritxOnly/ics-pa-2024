@@ -73,7 +73,7 @@ static int decode_exec(Decode *s) {
 
   INSTPAT_START();
 
-  INSTPAT("0000000 00000 00001 000 00000 11001 11", ret    , N, NEMUTRAP(s->pc, 0));
+  // INSTPAT("0000000 00000 00001 000 00000 11001 11", ret    , N, NEMUTRAP(s->pc, 0));
 
   // 算术运算（寄存器）：R-type
   INSTPAT("0000000 ????? ????? 000 ????? 01100 11", add    , R, R(rd) = src1 + src2);   // ADD
