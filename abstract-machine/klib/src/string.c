@@ -1,3 +1,4 @@
+#include <dlfcn.h>
 #include <klib.h>
 #include <klib-macros.h>
 #include <stdint.h>
@@ -9,9 +10,6 @@ size_t strlen(const char *s) {
   size_t cnt = 0;
   while (s[cnt] != '\0') {
     cnt++;
-    if (cnt == 0) {
-      return cnt - 1;
-    }
   }
   return cnt;
 }
@@ -31,8 +29,12 @@ char *strcpy(char *dst, const char *src) {
 
 char *strncpy(char *dst, const char *src, size_t n) {
   assert(dst != NULL && src != NULL);
-  for (int i = 0; i < n; i++) {
+  size_t i;
+  for (i = 0; i < n && src[i] != '\0'; i++) {
     dst[i] = src[i];
+  }
+  for (; i < n; i++) {
+    dst[i] = '\0';
   }
   return dst;
 }
@@ -67,7 +69,7 @@ int strcmp(const char *s1, const char *s2) {
 
 int strncmp(const char *s1, const char *s2, size_t n) {
   assert(s1 != NULL && s2 != NULL);
-  for (int i = 0; i < n; i++) {
+  for (size_t i = 0; i < n; i++) {
     if (s1[i] != s2[i]) {
       return s1[i] - s2[i];
     } else if (s1[i] == '\0') {
@@ -80,7 +82,7 @@ int strncmp(const char *s1, const char *s2, size_t n) {
 void *memset(void *s, int c, size_t n) {
   // memset是将每个字节都设置为c
   uint8_t *ptr = s;
-  for (int i = 0; i < n; i++) {
+  for (size_t i = 0; i < n; i++) {
     *(ptr + i) = (uint8_t)c;
   }
   return s;
@@ -92,11 +94,11 @@ void *memmove(void *dst, const void *src, size_t n) {
   uint8_t *ptr_d = dst;
   const uint8_t *ptr_s = src;
   if (ptr_d > ptr_s) {  // src在dst前面，从后往前拷贝避免重叠
-    for (int i = n - 1; i >= 0; i--) {
+    for (size_t i = n - 1; i >= 0; i--) {
       *(ptr_d + i) = *(ptr_s + i);
     }
   } else if (ptr_d < ptr_s) {
-    for (int i = 0; i < n; i++) {
+    for (size_t i = 0; i < n; i++) {
       *(ptr_d + i) = *(ptr_s + i);
     }
   }
@@ -106,7 +108,7 @@ void *memmove(void *dst, const void *src, size_t n) {
 void *memcpy(void *out, const void *in, size_t n) {
   uint8_t *ptr_o = out;
   const uint8_t *ptr_i = in;
-  for (int i = 0; i < n; i++) {
+  for (size_t i = 0; i < n; i++) {
     *(ptr_o + i) = *(ptr_i + i);
   }
   return out;
@@ -114,7 +116,7 @@ void *memcpy(void *out, const void *in, size_t n) {
 
 int memcmp(const void *s1, const void *s2, size_t n) {
   const uint8_t *ptr1 = s1, *ptr2 = s2; 
-  for (int i = 0; i < n; i++) {
+  for (size_t i = 0; i < n; i++) {
     if (*(ptr1 + i) != *(ptr2 + i)) {
       return *(ptr1 + i) - *(ptr2 + i);
     }
