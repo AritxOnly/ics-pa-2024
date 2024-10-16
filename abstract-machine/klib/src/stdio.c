@@ -55,7 +55,6 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
 }
 
 int sprintf(char *out, const char *fmt, ...) {
-  // panic("Not implemented");
   va_list args;
   va_start(args, fmt);  // 初始化args，其中va_start二参是最后一个确定参数
   *out = '\0'; // 初始化
