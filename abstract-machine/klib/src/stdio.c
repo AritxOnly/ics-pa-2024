@@ -61,33 +61,37 @@ int sprintf(char *out, const char *fmt, ...) {
   *out = '\0'; // 初始化
   char parsed[20] = {0};
   while (*fmt) {
-    switch (*fmt) {
-      case '%':
-        fmt++;
-        switch (*fmt) {
-          case 'd': {
-            int val = va_arg(args, int);
-            int_parse(parsed, val);
-            strcat(out, parsed);
-            break;
-          }
-          case 's': {
-            char* str = va_arg(args, char*);
-            strcat(out, str);
-            break;
-          }
-          case 'x': {
-            int val = va_arg(args, int);
-            int_hex_parse(parsed, val);
-            strcat(out, parsed);
-            break;
-          }
+    if (*fmt == '%') {
+      fmt++;
+      memset(parsed, 0, sizeof(parsed));
+      switch (*fmt) {
+        case 'd': {
+          int val = va_arg(args, int);
+          int_parse(parsed, val);
+          strcat(out, parsed);
+          break;
         }
-        break;
-      default:
-        return -1;
+        case 's': {
+          char* str = va_arg(args, char*);
+          strcat(out, str);
+          break;
+        }
+        case 'x': {
+          int val = va_arg(args, int);
+          int_hex_parse(parsed, val);
+          strcat(out, parsed);
+          break;
+        }
+        default:
+          return -1;
+      }
+    } else {
+      char append[] = {*fmt, '\0'};
+      strcat(out, append);
     }
+    fmt++;
   }
+  va_end(args);
   return strlen(out);
 }
 
