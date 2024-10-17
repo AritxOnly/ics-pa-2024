@@ -137,7 +137,8 @@ void cpu_exec(uint64_t n) {
           nemu_state.halt_pc);
       #ifdef CONFIG_IRINGBUF
         // 输出环形缓冲区
-        if (BAD_EXIT_STATUS) printf("\n");
+        if (BAD_EXIT_STATUS) 
+          printf("\nBad exit status\n");
         log_write("\n");
         if (BAD_EXIT_STATUS) 
           printf("-----------iRingBuf outputs-------------\n");
