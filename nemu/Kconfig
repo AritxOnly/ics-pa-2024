@@ -156,6 +156,10 @@ config IRINGBUF
   bool "Enable instruction ring buffer tracer"
   default n
 
+config MTRACE
+  bool "Enable memory trace function"
+  default n
+
 config WATCHPOINT
   bool "Enable watchpoints function"
   default y

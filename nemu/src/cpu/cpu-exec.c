@@ -135,26 +135,28 @@ void cpu_exec(uint64_t n) {
            (nemu_state.halt_ret == 0 ? ANSI_FMT("HIT GOOD TRAP", ANSI_FG_GREEN) :
             ANSI_FMT("HIT BAD TRAP", ANSI_FG_RED))),
           nemu_state.halt_pc);
-      // 输出环形缓冲区
-    #ifdef CONFIG_IRINGBUF
-      if (nemu_state.halt_ret != 0) {
-        printf("\n");
+      #ifdef CONFIG_IRINGBUF
+        // 输出环形缓冲区
+        if (BAD_EXIT_STATUS) printf("\n");
         log_write("\n");
-        printf("-----------iRingBuf outputs-------------\n");
+        if (BAD_EXIT_STATUS) 
+          printf("-----------iRingBuf outputs-------------\n");
         log_write("-----------iRingBuf outputs-------------\n");
         for (int i = 0; i < IRINGBUF_SIZE; i++) {
           if (ring_buf.head == i) {
-            printf("---->  %s\n", ring_buf.inst[i]);
+            if (BAD_EXIT_STATUS) 
+              printf("---->  %s\n", ring_buf.inst[i]);
             log_write("---->  %s\n", ring_buf.inst[i]);
           } else {
-            printf("       %s\n", ring_buf.inst[i]);
+            if (BAD_EXIT_STATUS) 
+              printf("       %s\n", ring_buf.inst[i]);
             log_write("       %s\n", ring_buf.inst[i]);
           }
         }
-        printf("------------iRingBuf ends--------------\n");
+        if (BAD_EXIT_STATUS) 
+          printf("------------iRingBuf ends--------------\n");
         log_write("------------iRingBuf ends--------------\n");
-      }
-    #endif
+      #endif
       // fall through
     case NEMU_QUIT: statistic();
   }
