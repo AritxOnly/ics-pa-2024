@@ -94,8 +94,8 @@ void *memmove(void *dst, const void *src, size_t n) {
   uint8_t *ptr_d = dst;
   const uint8_t *ptr_s = src;
   if (ptr_d > ptr_s) {  // src在dst前面，从后往前拷贝避免重叠
-    for (size_t i = n - 1; i >= 0; i--) {
-      *(ptr_d + i) = *(ptr_s + i);
+    for (size_t i = n; i > 0; i--) {
+      *(ptr_d + i - 1) = *(ptr_s + i - 1);
     }
   } else if (ptr_d < ptr_s) {
     for (size_t i = 0; i < n; i++) {
