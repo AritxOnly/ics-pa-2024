@@ -18,6 +18,7 @@
 #include <cpu/decode.h>
 #include <cpu/difftest.h>
 #include <locale.h>
+#include "tracer.h"
 
 /* The assembly code of instructions executed is only output to the screen
  * when the number of instructions executed is less than this value.
@@ -26,6 +27,7 @@
  */
 #define MAX_INST_TO_PRINT 10
 
+IRingBuf ring_buf = {.head = 0};
 CPU_state cpu = {};
 uint64_t g_nr_guest_inst = 0;
 static uint64_t g_timer = 0; // unit: us
@@ -72,6 +74,13 @@ static void exec_once(Decode *s, vaddr_t pc) {
   void disassemble(char *str, int size, uint64_t pc, uint8_t *code, int nbyte);
   disassemble(p, s->logbuf + sizeof(s->logbuf) - p,
       MUXDEF(CONFIG_ISA_x86, s->snpc, s->pc), (uint8_t *)&s->isa.inst.val, ilen);
+
+  #ifdef CONFIG_IRINGBUF
+    // 添加当前s->logbuf到ringbuf
+    ring_buf.head = (ring_buf.head + 1) % IRINGBUF_SIZE;
+    memset(ring_buf.inst[ring_buf.head], 0, sizeof(ring_buf.inst[ring_buf.head]));
+    strcpy(ring_buf.inst[ring_buf.head], s->logbuf);
+  #endif
 #endif
 }
 
@@ -126,6 +135,22 @@ void cpu_exec(uint64_t n) {
            (nemu_state.halt_ret == 0 ? ANSI_FMT("HIT GOOD TRAP", ANSI_FG_GREEN) :
             ANSI_FMT("HIT BAD TRAP", ANSI_FG_RED))),
           nemu_state.halt_pc);
+      // 输出环形缓冲区
+      #ifdef CONFIG_IRINGBUF
+        printf("-----------iRingBuf outputs-------------");
+        log_write("-----------iRingBuf outputs-------------");
+        for (int i = 0; i < IRINGBUF_SIZE; i++) {
+          if (ring_buf.head == i) {
+            printf("---->  %s", ring_buf.inst[i]);
+            log_write("---->  %s", ring_buf.inst[i]);
+          } else {
+            printf("       %s", ring_buf.inst[i]);
+            log_write("       %s", ring_buf.inst[i]);
+          }
+        }
+        printf("------------iRingBuf ends--------------");
+        log_write("------------iRingBuf ends--------------");
+      #endif
       // fall through
     case NEMU_QUIT: statistic();
   }
