@@ -137,19 +137,21 @@ void cpu_exec(uint64_t n) {
           nemu_state.halt_pc);
       // 输出环形缓冲区
       #ifdef CONFIG_IRINGBUF
-        printf("-----------iRingBuf outputs-------------");
-        log_write("-----------iRingBuf outputs-------------");
+        printf("\n");
+        log_write("\n");
+        printf("-----------iRingBuf outputs-------------\n");
+        log_write("-----------iRingBuf outputs-------------\n");
         for (int i = 0; i < IRINGBUF_SIZE; i++) {
           if (ring_buf.head == i) {
-            printf("---->  %s", ring_buf.inst[i]);
-            log_write("---->  %s", ring_buf.inst[i]);
+            printf("---->  %s\n", ring_buf.inst[i]);
+            log_write("---->  %s\n", ring_buf.inst[i]);
           } else {
-            printf("       %s", ring_buf.inst[i]);
-            log_write("       %s", ring_buf.inst[i]);
+            printf("       %s\n", ring_buf.inst[i]);
+            log_write("       %s\n", ring_buf.inst[i]);
           }
         }
-        printf("------------iRingBuf ends--------------");
-        log_write("------------iRingBuf ends--------------");
+        printf("------------iRingBuf ends--------------\n");
+        log_write("------------iRingBuf ends--------------\n");
       #endif
       // fall through
     case NEMU_QUIT: statistic();
