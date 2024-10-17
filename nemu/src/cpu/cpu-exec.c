@@ -136,7 +136,8 @@ void cpu_exec(uint64_t n) {
             ANSI_FMT("HIT BAD TRAP", ANSI_FG_RED))),
           nemu_state.halt_pc);
       // 输出环形缓冲区
-      #ifdef CONFIG_IRINGBUF
+    #ifdef CONFIG_IRINGBUF
+      if (nemu_state.halt_ret != 0) {
         printf("\n");
         log_write("\n");
         printf("-----------iRingBuf outputs-------------\n");
@@ -152,7 +153,8 @@ void cpu_exec(uint64_t n) {
         }
         printf("------------iRingBuf ends--------------\n");
         log_write("------------iRingBuf ends--------------\n");
-      #endif
+      }
+    #endif
       // fall through
     case NEMU_QUIT: statistic();
   }
