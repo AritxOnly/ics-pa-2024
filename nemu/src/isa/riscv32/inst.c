@@ -13,6 +13,7 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
+#include "common.h"
 #include "local-include/reg.h"
 #include "macro.h"
 #include <cpu/cpu.h>
@@ -23,6 +24,9 @@
 #define R(i) gpr(i)
 #define Mr vaddr_read
 #define Mw vaddr_write
+
+void function_call(paddr_t from, paddr_t target);
+void function_return(paddr_t from, paddr_t target);
 
 enum {
   TYPE_I, TYPE_U, TYPE_S, 
@@ -60,6 +64,9 @@ static void decode_operand(Decode *s, int *rd, word_t *src1, word_t *src2, word_
     case TYPE_J:                   immJ(); break;
   }
 }
+
+static void jal(int rd, word_t imm, Decode *s);
+static void jalr(int rd, word_t imm, word_t src1, Decode *s);
 
 static int decode_exec(Decode *s) {
   int rd = 0;
@@ -130,8 +137,8 @@ static int decode_exec(Decode *s) {
   INSTPAT("??????? ????? ????? 111 ????? 11000 11", bgeu   , B, if (src1 >= src2) s->dnpc = s->pc + imm); 
 
   // 跳转
-  INSTPAT("??????? ????? ????? ??? ????? 11011 11", jal    , J, s->dnpc = s->pc + imm; R(rd) = s->snpc); // Jump and Link
-  INSTPAT("??????? ????? ????? 000 ????? 11001 11", jalr   , I, s->dnpc = (imm + src1) & ~1U; R(rd) = s->snpc); // Jump and Link Reg
+  INSTPAT("??????? ????? ????? ??? ????? 11011 11", jal    , J, jal(rd, imm, s)); // Jump and Link
+  INSTPAT("??????? ????? ????? 000 ????? 11001 11", jalr   , I, jalr(rd, imm, src1, s)); // Jump and Link Reg
 
   // 高位立即数操作：U-type
   INSTPAT("??????? ????? ????? ??? ????? 00101 11", auipc  , U, R(rd) = s->pc + imm);
@@ -150,4 +157,16 @@ static int decode_exec(Decode *s) {
 int isa_exec_once(Decode *s) {
   s->isa.inst.val = inst_fetch(&s->snpc, 4);
   return decode_exec(s);
+}
+
+static void jal(int rd, word_t imm, Decode *s) {
+  s->dnpc = s->pc + imm; 
+  R(rd) = s->snpc; 
+  IFDEF(CONFIG_FTRACE, function_call(s->pc, s->dnpc));
+}
+
+static void jalr(int rd, word_t imm, word_t src1, Decode *s) {
+  s->dnpc = (imm + src1) & ~1U; 
+  R(rd) = s->snpc; 
+  IFDEF(CONFIG_FTRACE, function_call(s->pc, s->snpc));
 }
