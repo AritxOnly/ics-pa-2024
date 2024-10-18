@@ -98,6 +98,7 @@ static int parse_args(int argc, char *argv[]) {
         printf("\t-l,--log=FILE           output log to FILE\n");
         printf("\t-d,--diff=REF_SO        run DiffTest with reference REF_SO\n");
         printf("\t-p,--port=PORT          run DiffTest with port PORT\n");
+        printf("\t-f,--ftrace=ELF_FILE    parse ELF_FILE in ftrace mode\n");
         printf("\n");
         exit(0);
     }
