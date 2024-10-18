@@ -117,7 +117,7 @@ void function_call(paddr_t from, paddr_t target) {
   for (int i = 0; i < call_depth; i++) {
     _Log("\t");
   }
-  _Log("call [%s@0x%x]", func_name, target);
+  _Log("call [%s@0x%x]\n", func_name, target);
   call_stack[call_depth++] = from + 4;
 }
 
@@ -128,6 +128,6 @@ void function_return(paddr_t from, paddr_t target) {
   for (int i = 0; i < call_depth; i++) {
     _Log("\t");
   }
-  _Log("ret [%s]", func_name);
+  _Log("ret [%s]\n", func_name);
   call_depth--;
 }
