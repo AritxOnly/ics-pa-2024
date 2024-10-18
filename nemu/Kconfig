@@ -160,6 +160,10 @@ config MTRACE
   bool "Enable memory trace function"
   default n
 
+config FTRACE
+  bool "Enable function trace function"
+  default y
+
 config WATCHPOINT
   bool "Enable watchpoints function"
   default y

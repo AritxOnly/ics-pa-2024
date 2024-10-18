@@ -14,6 +14,7 @@
 ***************************************************************************************/
 
 #include "macro.h"
+#include <bits/getopt_core.h>
 #include <isa.h>
 #include <memory/paddr.h>
 
@@ -25,6 +26,7 @@ void init_device();
 void init_sdb();
 void init_disasm();
 void init_iringbuf();
+void init_ftrace(const char *elf);
 
 static void welcome() {
   Log("Trace: %s", MUXDEF(CONFIG_TRACE, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED)));
@@ -46,6 +48,7 @@ void sdb_set_batch_mode();
 static char *log_file = NULL;
 static char *diff_so_file = NULL;
 static char *img_file = NULL;
+static char *elf_file = NULL;
 static int difftest_port = 1234;
 
 static long load_img() {
@@ -77,15 +80,17 @@ static int parse_args(int argc, char *argv[]) {
     {"diff"     , required_argument, NULL, 'd'},
     {"port"     , required_argument, NULL, 'p'},
     {"help"     , no_argument      , NULL, 'h'},
+    {"ftrace"   , required_argument, NULL, 'f'},
     {0          , 0                , NULL,  0 },
   };
   int o;
-  while ( (o = getopt_long(argc, argv, "-bhl:d:p:", table, NULL)) != -1) {
+  while ( (o = getopt_long(argc, argv, "-bhl:d:p:f:", table, NULL)) != -1) {
     switch (o) {
       case 'b': sdb_set_batch_mode(); break;
       case 'p': sscanf(optarg, "%d", &difftest_port); break;
       case 'l': log_file = optarg; break;
       case 'd': diff_so_file = optarg; break;
+      case 'f': elf_file = optarg; break;
       case 1: img_file = optarg; return 0;
       default:
         printf("Usage: %s [OPTION...] IMAGE [args]\n\n", argv[0]);
@@ -133,6 +138,8 @@ void init_monitor(int argc, char *argv[]) {
   IFDEF(CONFIG_ITRACE, init_disasm());
 
   IFDEF(CONFIG_IRINGBUF, init_iringbuf());
+
+  IFDEF(CONFIG_FTRACE, init_ftrace(elf_file));
 
   /* Display welcome message. */
   welcome();
