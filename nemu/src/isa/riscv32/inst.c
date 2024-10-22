@@ -168,8 +168,8 @@ static void jal(int rd, word_t imm, Decode *s) {
 static void jalr(int rd, word_t imm, word_t src1, Decode *s) {
   s->dnpc = (imm + src1) & ~1U; 
   R(rd) = s->snpc; 
-  int rs1 = BITS(s->isa.inst.val, 19, 15);
   IFDEF(CONFIG_FTRACE, 
+        int rs1 = BITS(s->isa.inst.val, 19, 15);
         if (rd == 0 && rs1 == 1 && imm == 0) {
           function_return(s->pc, s->dnpc);
         } else {
