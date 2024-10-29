@@ -84,6 +84,7 @@ void init_ftrace(const char *elf_file) {
       symbols[symbol_cnt].st_size = sym.st_size;
       symbols[symbol_cnt].st_info = sym.st_info;
       symbols[symbol_cnt].st_name = strdup(&strtab[sym.st_name]);
+      printf("Function %s, Addr: 0x%08x", symbols[symbol_cnt].st_name, symbols[symbol_cnt].st_value);
       ++symbol_cnt;
     }
   }
