@@ -113,7 +113,7 @@ static int cmd_x(char *args) {
 
   for (int i = 0; i < n; i++) {
     word_t data = vaddr_read(addr, 4);
-    printf("Addr:0x%x\t\t0x%x\t\t%d\n", addr, data, data);
+    printf("Addr:0x%08x\t\t0x%08x\t\t%d\n", addr, data, data);
     addr += 4;
   }
 
@@ -128,7 +128,7 @@ static int cmd_p(char *args) {
   bool success = true;
   uint32_t value = expr(args, &success);
   if (success)
-    printf("result: %u (0x%x)\n", value, value);
+    printf("result: %u (0x%08x)\n", value, value);
   else
     printf("Invalid expression\n");
   return 0;

@@ -113,18 +113,18 @@ static Symbol *search(paddr_t addr) {
 void function_call(paddr_t from, paddr_t target) {
   Symbol *sym = search(target);
   char *func_name = sym ? sym->st_name : "???";
-  _Log("0x%x: ", from);
+  _Log("0x%08x: ", from);
   for (int i = 0; i < call_depth; i++) {
     _Log("\t");
   }
-  _Log("call [%s@0x%x]\n", func_name, target);
+  _Log("call [%s@0x%08x]\n", func_name, target);
   call_stack[call_depth++] = from + 4;
 }
 
 void function_return(paddr_t from, paddr_t target) {
   Symbol *sym = search(target);
   char *func_name = sym ? sym->st_name : "???";
-  _Log("0x%x: ", from);
+  _Log("0x%08x: ", from);
   for (int i = 0; i < call_depth; i++) {
     _Log("\t");
   }
