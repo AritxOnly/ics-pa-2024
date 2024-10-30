@@ -13,10 +13,12 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
+#include "common.h"
 #include "macro.h"
 #include <bits/getopt_core.h>
 #include <isa.h>
 #include <memory/paddr.h>
+#include <stdio.h>
 
 void init_rand();
 void init_log(const char *log_file);
@@ -71,6 +73,66 @@ static long load_img() {
 
   fclose(fp);
   return size;
+}
+
+#include <elf.h>
+
+static long load_elf() {
+  if (elf_file == NULL) {
+    Log("No elf is given. The nemu will now run as default.");
+    return 4096;
+  }
+
+  FILE *fp = fopen(elf_file, "rb");
+  Assert(fp, "Can not open '%s'", elf_file);
+
+  // ELF头读取
+  Elf32_Ehdr ehdr;
+  if (fread(&ehdr, 1, sizeof(ehdr), fp) != sizeof(ehdr)) {
+    Log("Failed to read ELF header. The nemu will now run as default.");
+    fclose(fp);
+    return 4096;
+  }
+
+  // 验证ELF魔数
+  Assert(ehdr.e_ident[EI_MAG0] == ELFMAG0 && ehdr.e_ident[EI_MAG1] == ELFMAG1
+         && ehdr.e_ident[EI_MAG2] == ELFMAG2 && ehdr.e_ident[EI_MAG3] == ELFMAG3,
+         "ELF Magic Number evaluation fault, probably because of this is\
+          not an ELF file.");
+
+  Elf32_Phdr *phdrs = malloc(ehdr.e_phentsize * ehdr.e_phnum);
+  fseek(fp, ehdr.e_phoff, SEEK_SET);
+  if (fread(phdrs, ehdr.e_phentsize, ehdr.e_phnum, fp) != ehdr.e_phnum) {
+    Assert(0, "Failed to read program headers!!!");
+  }
+
+  for (int i = 0; i < ehdr.e_phnum; i++) {
+    Elf32_Phdr *phdr = &phdrs[i];
+    if (phdr->p_type == PT_LOAD) {
+      vaddr_t vaddr = phdr->p_vaddr;
+      vaddr_t mem_size = phdr->p_memsz;
+      vaddr_t file_size = phdr->p_filesz;
+      vaddr_t offset = phdr->p_offset;
+
+      fseek(fp, offset, SEEK_SET);
+      int ret = fread(guest_to_host(vaddr), 1, file_size, fp);
+      Assert(ret == file_size, "Failed to read the program body...");
+
+      if (mem_size > file_size) {
+        memset(guest_to_host(vaddr) + file_size, 0, mem_size - file_size);
+      }
+
+      Log("Loaded segment %d: vaddr = 0x%08x, memsz = 0x%08x, filesz = 0x%08x", 
+          i, vaddr, mem_size, file_size);
+    }
+
+    free(phdrs);
+    fclose(fp);
+
+    cpu.pc = ehdr.e_entry;
+    Log("Entry point is 0x%08x", cpu.pc);
+  }
+  return 0;
 }
 
 static int parse_args(int argc, char *argv[]) {
@@ -128,7 +190,12 @@ void init_monitor(int argc, char *argv[]) {
   init_isa();
 
   /* Load the image to memory. This will overwrite the built-in image. */
-  long img_size = load_img();
+  long img_size = 0;
+  if (elf_file) {
+    img_size = load_elf();
+  } else {
+    img_size = load_img();
+  }
 
   /* Initialize differential testing. */
   init_difftest(diff_so_file, img_size, difftest_port);
