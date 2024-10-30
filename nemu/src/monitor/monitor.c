@@ -125,13 +125,13 @@ static long load_elf() {
       Log("Loaded segment %d: vaddr = 0x%08x, memsz = 0x%08x, filesz = 0x%08x", 
           i, vaddr, mem_size, file_size);
     }
-
-    free(phdrs);
-    fclose(fp);
-
-    cpu.pc = ehdr.e_entry;
-    Log("Entry point is 0x%08x", cpu.pc);
   }
+
+  free(phdrs);
+  fclose(fp);
+
+  cpu.pc = ehdr.e_entry;
+  Log("Entry point is 0x%08x", cpu.pc);
   return 0;
 }
 
@@ -152,7 +152,7 @@ static int parse_args(int argc, char *argv[]) {
       case 'p': sscanf(optarg, "%d", &difftest_port); break;
       case 'l': log_file = optarg; break;
       case 'd': diff_so_file = optarg; break;
-      case 'f': elf_file = optarg; img_file = elf_file; break;
+      case 'f': elf_file = optarg; break;
       case 1: img_file = optarg; return 0;
       default:
         printf("Usage: %s [OPTION...] IMAGE [args]\n\n", argv[0]);
