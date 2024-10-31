@@ -46,8 +46,20 @@ void int_hex_parse(char* dest, int v) {
 
 #if !defined(__ISA_NATIVE__) || defined(__NATIVE_USE_KLIB__)
 
+int sprintf(char *out, const char *fmt, ...);
+
+#define BUFFER_MAX 256
+
 int printf(const char *fmt, ...) {
-  panic("Not implemented");
+  char chars[BUFFER_MAX] = { 0 };  // BUFFER_SIZE = 256 
+  va_list args;
+  va_start(args, fmt);
+  int len = sprintf(chars, fmt, args);
+  va_end(args);
+  for (int i = 0; i < len && chars[i] != '\0'; i++) {
+    putch(chars[i]);
+  }
+  return len;
 }
 
 int vsprintf(char *out, const char *fmt, va_list ap) {
