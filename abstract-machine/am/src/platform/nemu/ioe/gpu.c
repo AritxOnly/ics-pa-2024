@@ -7,13 +7,13 @@
 
 void __am_gpu_init() {
   /* test code */
-  // int w = io_read(AM_GPU_CONFIG).width;
-  // int h = io_read(AM_GPU_CONFIG).height;
-  // uint32_t *fb = (uint32_t *)(uintptr_t)FB_ADDR;
-  // for (int i = 0; i < w * h; i++) {
-  //   fb[i] = i;
-  // }
-  // outl(SYNC_ADDR, 1);
+  int w = io_read(AM_GPU_CONFIG).width;
+  int h = io_read(AM_GPU_CONFIG).height;
+  uint32_t *fb = (uint32_t *)(uintptr_t)FB_ADDR;
+  for (int i = 0; i < w * h; i++) {
+    fb[i] = i;
+  }
+  outl(SYNC_ADDR, 1);
 }
 
 void __am_gpu_config(AM_GPU_CONFIG_T *cfg) {
@@ -30,7 +30,7 @@ void __am_gpu_config(AM_GPU_CONFIG_T *cfg) {
 void __am_gpu_fbdraw(AM_GPU_FBDRAW_T *ctl) {
   uint16_t w = (inl(VGACTL_ADDR) >> 16) & 0xffff;
 
-  if (!ctl->pixels || ctl->w == 0 || ctl->h == 0) {
+  if (!ctl->pixels) {
     printf("quit fbdraw");
     return; 
   }
