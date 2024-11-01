@@ -6,14 +6,18 @@
 void int_parse(char* dest, int v) {
   char tmp_str[20];
   size_t i = 0;
+  int is_negative = 0;
   if (v < 0) {
-    tmp_str[i++] = '-';
+    is_negative = 1;
     v = -v;
   }
-  while (v != 0) {
+  do {
     int digit = v % 10;
     tmp_str[i++] = digit + '0';
     v /= 10;
+  } while (v != 0);
+  if (is_negative) {
+    tmp_str[i++] = '-';
   }
   while (i--) {
     *(dest++) = tmp_str[i];
@@ -24,94 +28,109 @@ void int_parse(char* dest, int v) {
 void int_hex_parse(char* dest, int v) {
   char tmp_str[20];
   size_t i = 0;
-  if (v < 0) {
-    tmp_str[i++] = '-';
-    v = -v;
-  }
-  while (v != 0) {
+  do {
     int rem = v % 16;
-    if (rem >= 0 && rem <= 9) {
+    if (rem < 10) {
       tmp_str[i++] = rem + '0';
     } else {
-      tmp_str[i++] = (rem - 10) + 'A';
+      tmp_str[i++] = (rem - 10) + 'a';
     }
     v /= 16;
-  }
+  } while (v != 0);
+  tmp_str[i++] = 'x';
+  tmp_str[i++] = '0';
   while (i--) {
-    *dest = tmp_str[i];
-    dest++;
+    *(dest++) = tmp_str[i];
   }
   *dest = '\0';
 }
 
 #if !defined(__ISA_NATIVE__) || defined(__NATIVE_USE_KLIB__)
 
-int sprintf(char *out, const char *fmt, ...);
-
-#define BUFFER_MAX 65536
-
-int printf(const char *fmt, ...) {
-  char chars[BUFFER_MAX] = { 0 };  // BUFFER_SIZE = 256 
-  va_list args;
-  va_start(args, fmt);
-  int len = sprintf(chars, fmt, args);
-  va_end(args);
-  for (int i = 0; i < len && chars[i] != '\0'; i++) {
-    putch(chars[i]);
+int vsprintf(char *out, const char *fmt, va_list args) {
+  char *str = out;
+  const char *p = fmt;
+  char ch;
+  while ((ch = *p++)) {
+    if (ch != '%') {
+      *str++ = ch;
+      continue;
+    }
+    ch = *p++;
+    switch (ch) {
+      case 'd': {
+        int val = va_arg(args, int);
+        char buf[20];
+        int_parse(buf, val);
+        strcpy(str, buf);
+        str += strlen(buf);
+        break;
+      }
+      case 's': {
+        char *val = va_arg(args, char *);
+        strcpy(str, val);
+        str += strlen(val);
+        break;
+      }
+      case 'x': {
+        int val = va_arg(args, int);
+        char buf[20];
+        int_hex_parse(buf, val);
+        strcpy(str, buf);
+        str += strlen(buf);
+        break;
+      }
+      case '%': {
+        *str++ = '%';
+        break;
+      }
+      default:
+        *str++ = '%';
+        *str++ = ch;
+        break;
+    }
   }
-  return len;
-}
-
-int vsprintf(char *out, const char *fmt, va_list ap) {
-  panic("Not implemented");
+  *str = '\0';
+  return str - out;
 }
 
 int sprintf(char *out, const char *fmt, ...) {
   va_list args;
-  va_start(args, fmt);  // 初始化args，其中va_start二参是最后一个确定参数
-  *out = '\0'; // 初始化
-  char parsed[20] = {0};
-  while (*fmt) {
-    if (*fmt == '%') {
-      fmt++;
-      memset(parsed, 0, sizeof(parsed));
-      switch (*fmt) {
-        case 'd': {
-          int val = va_arg(args, int);
-          int_parse(parsed, val);
-          strcat(out, parsed);
-          break;
-        }
-        case 's': {
-          char* str = va_arg(args, char*);
-          strcat(out, str);
-          break;
-        }
-        case 'x': {
-          int val = va_arg(args, int);
-          int_hex_parse(parsed, val);
-          strcat(out, parsed);
-          break;
-        }
-        default:
-          return -1;
-      }
-    } else {
-      char append[] = {*fmt, '\0'};
-      strcat(out, append);
-    }
-    fmt++;
-  }
+  va_start(args, fmt);
+  int len = vsprintf(out, fmt, args);
   va_end(args);
-  return strlen(out);
+  return len;
+}
+
+#define BUFFER_MAX 8192
+
+int printf(const char *fmt, ...) {
+  char buffer[BUFFER_MAX];
+  va_list args;
+  va_start(args, fmt);
+  int len = vsprintf(buffer, fmt, args);
+  va_end(args);
+  for (int i = 0; i < len; i++) {
+    putch(buffer[i]);
+  }
+  return len;
 }
 
 int snprintf(char *out, size_t n, const char *fmt, ...) {
-  panic("Not implemented");
+  va_list args;
+  va_start(args, fmt);
+  int len = vsnprintf(out, n, fmt, args);
+  va_end(args);
+  return len;
 }
 
-int vsnprintf(char *out, size_t n, const char *fmt, va_list ap) {
-  panic("Not implemented");
+int vsnprintf(char *out, size_t n, const char *fmt, va_list args) {
+  int len = vsprintf(out, fmt, args);
+  if (len >= n) {
+    out[n - 1] = '\0';
+    len = n - 1;
+  }
+  return len;
 }
 
 #endif
