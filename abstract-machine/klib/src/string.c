@@ -51,7 +51,7 @@ char *strcat(char *dst, const char *src) {
     ptr_d++;
     ptr_s++;
   }
-  *ptr_d = *ptr_s;
+  *ptr_d = '\0'; // 确保复制的是字符串终止符
   return dst;
 }
 
