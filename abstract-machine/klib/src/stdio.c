@@ -48,7 +48,7 @@ void int_hex_parse(char* dest, int v) {
 
 int sprintf(char *out, const char *fmt, ...);
 
-#define BUFFER_MAX 256
+#define BUFFER_MAX 65536
 
 int printf(const char *fmt, ...) {
   char chars[BUFFER_MAX] = { 0 };  // BUFFER_SIZE = 256 
