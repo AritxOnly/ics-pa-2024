@@ -30,10 +30,10 @@ void __am_gpu_config(AM_GPU_CONFIG_T *cfg) {
 void __am_gpu_fbdraw(AM_GPU_FBDRAW_T *ctl) {
   uint16_t w = (inl(VGACTL_ADDR) >> 16) & 0xffff;
 
-  if (!ctl->pixels) {
-    printf("quit fbdraw");
-    return; 
-  }
+  // if (!ctl->pixels) {
+  //   printf("quit fbdraw");
+  //   return; 
+  // }
 
   uint32_t *fb = (uint32_t *)(uintptr_t)FB_ADDR;
   uint32_t *pixels = ctl->pixels;  // 头指针
