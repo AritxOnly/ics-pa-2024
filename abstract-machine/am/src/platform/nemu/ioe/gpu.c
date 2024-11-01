@@ -1,6 +1,7 @@
 #include <am.h>
 #include <nemu.h>
 #include <string.h>
+#include <stdio.h>
 
 #define SYNC_ADDR (VGACTL_ADDR + 4)
 
@@ -29,7 +30,10 @@ void __am_gpu_config(AM_GPU_CONFIG_T *cfg) {
 void __am_gpu_fbdraw(AM_GPU_FBDRAW_T *ctl) {
   uint16_t w = (inl(VGACTL_ADDR) >> 16) & 0xffff;
 
-  if (!ctl->pixels || ctl->w == 0 || ctl->h == 0) return; 
+  if (!ctl->pixels || ctl->w == 0 || ctl->h == 0) {
+    printf("quit fbdraw");
+    return; 
+  }
 
   uint32_t *fb = (uint32_t *)(uintptr_t)FB_ADDR;
   uint32_t *pixels = ctl->pixels;  // 头指针
