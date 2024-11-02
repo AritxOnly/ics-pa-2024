@@ -30,51 +30,97 @@ enum {
 static uint8_t *sbuf = NULL;
 static uint32_t *audio_base = NULL;
 
-static SDL_AudioSpec sdl_spec = {}; // 存储音频的结构体
-static uint32_t sbuf_size = CONFIG_SB_SIZE;   // 地址
-static uint32_t count = 0;  // 数据量
-static uint32_t read_pos = 0; // 读取位置
-static SDL_AudioDeviceID device_id = 0; // 设备ID
+static SDL_AudioSpec sdl_spec = {};   // SDL 音频规格
+static uint32_t sbuf_size = CONFIG_SB_SIZE;  // 缓冲区大小
+static uint32_t count = 0;            // 缓冲区中数据的字节数
+static uint32_t read_pos = 0;         // 读取位置
+
+static void audio_callback(void *userdata, Uint8 *stream, int len) {
+  // 从流缓冲区中读取音频数据，填充到 stream
+  int remain = len;
+
+  while (remain > 0) {
+    int available = (count < remain) ? count : remain;
+
+    if (available > 0) {
+      if (read_pos + available <= sbuf_size) {
+        memcpy(stream + (len - remain), sbuf + read_pos, available);
+        read_pos += available;
+      } else {
+        int first_chunk = sbuf_size - read_pos;
+        memcpy(stream + (len - remain), sbuf + read_pos, first_chunk);
+        memcpy(stream + (len - remain) + first_chunk, sbuf, available - first_chunk);
+        read_pos = available - first_chunk;
+      }
+
+      read_pos %= sbuf_size;
+      SDL_LockAudio();
+      count -= available;
+      SDL_UnlockAudio();
+    } else {
+      // 如果缓冲区没有足够的数据，填充 0，避免噪音
+      memset(stream + (len - remain), 0, remain);
+      remain = 0;
+      break;
+    }
+
+    remain -= available;
+  }
+}
 
 static void audio_io_handler(uint32_t offset, int len, bool is_write) {
-  if (is_write) { // 写
-    uint32_t reg_index = offset / 4;  // 下标
+  if (is_write) {
+    uint32_t reg_index = offset / 4;
     uint32_t data = *(uint32_t *)((uint8_t *)audio_base + offset);
 
     switch (reg_index) {
-      case reg_freq: sdl_spec.freq = data; break;
-      case reg_channels: sdl_spec.channels = data; break;
-      case reg_samples: sdl_spec.samples = data; break;
+      case reg_freq:
+        sdl_spec.freq = data;
+        break;
+      case reg_channels:
+        sdl_spec.channels = data;
+        break;
+      case reg_samples:
+        sdl_spec.samples = data;
+        break;
       case reg_init:
         if (data) {
-          sdl_spec.format = AUDIO_S16SYS;
-          sdl_spec.callback = NULL;
+          sdl_spec.format = AUDIO_S16SYS;  // 16 位有符号系统字节序
+          sdl_spec.callback = audio_callback;
+          sdl_spec.userdata = NULL;
 
-          device_id = SDL_OpenAudioDevice(NULL, 0, &sdl_spec, NULL, 0);
-          Assert(device_id, "SDL_OpenAudioDevice: %s", SDL_GetError());
+          // 初始化 SDL 音频子系统
+          if (SDL_InitSubSystem(SDL_INIT_AUDIO) != 0) {
+            panic("Failed to initialize SDL audio subsystem: %s", SDL_GetError());
+          }
 
-          SDL_PauseAudioDevice(device_id, 0);
+          if (SDL_OpenAudio(&sdl_spec, NULL) < 0) {
+            panic("SDL_OpenAudio: %s", SDL_GetError());
+          }
+
+          SDL_PauseAudio(0);  // 开始播放音频
           audio_base[reg_sbuf_size] = sbuf_size;
         }
         break;
       default:
         break;
     }
-  } else {  // 读
+  } else {
     uint32_t reg_index = offset / 4;
     switch (reg_index) {
-      case reg_count: audio_base[reg_count] = count; break;
-      case reg_sbuf_size: audio_base[reg_sbuf_size] = sbuf_size;
-      default: break;
+      case reg_count:
+        audio_base[reg_count] = count;
+        break;
+      case reg_sbuf_size:
+        audio_base[reg_sbuf_size] = sbuf_size;
+        break;
+      default:
+        break;
     }
   }
 }
 
 void init_audio() {
-  if (SDL_Init(SDL_INIT_AUDIO) != 0) {
-    panic("Failed to initialize SDL: %s", SDL_GetError());
-  }
-
   uint32_t space_size = sizeof(uint32_t) * nr_reg;
   audio_base = (uint32_t *)new_space(space_size);
 #ifdef CONFIG_HAS_PORT_IO
@@ -85,36 +131,6 @@ void init_audio() {
 
   sbuf = (uint8_t *)new_space(CONFIG_SB_SIZE);
   add_mmio_map("audio-sbuf", CONFIG_SB_ADDR, sbuf, CONFIG_SB_SIZE, NULL);
-}
 
-void audio_update() {
-  if (!device_id || SDL_GetAudioDeviceStatus(device_id) != SDL_AUDIO_PLAYING) return;
-
-  uint32_t queued = SDL_GetQueuedAudioSize(device_id);
-  uint32_t free_space = sbuf_size - queued;
-
-  if (free_space == 0) return;
-
-  uint32_t len = (count < free_space) ? count : free_space;
-  if (len == 0) return;
-
-  uint8_t *buffer = malloc(len);  // 临时缓冲区
-  if (read_pos + len <= sbuf_size) {
-    memcpy(buffer, sbuf + read_pos, len);
-    read_pos += len;
-  } else {
-    uint32_t first_chunk = sbuf_size - read_pos;
-    memcpy(buffer, sbuf + read_pos, first_chunk);
-    memcpy(buffer + first_chunk, sbuf, len - first_chunk);
-    read_pos = len - first_chunk;
-  }
-
-  if (read_pos >= sbuf_size) {
-    read_pos -= sbuf_size;
-  }
-
-  count -= len;
-
-  SDL_QueueAudio(device_id, buffer, len);
-  free(buffer);
+  SDL_Init(SDL_INIT_AUDIO);
 }

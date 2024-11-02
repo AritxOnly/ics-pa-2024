@@ -13,7 +13,7 @@
 #define SBUF_SIZE 0x10000
 
 static uint32_t sbuf_size = 0;
-static uint32_t sbuf_write_pos = 0;
+static uint32_t write_pos = 0;
 
 void __am_audio_init() {
 }
@@ -37,36 +37,34 @@ void __am_audio_status(AM_AUDIO_STATUS_T *stat) {
 }
 
 void __am_audio_play(AM_AUDIO_PLAY_T *ctl) {
-  uint32_t len = (uintptr_t)ctl->buf.end - (uintptr_t)ctl->buf.start;
+  uint32_t len = ctl->buf.end - ctl->buf.start;
   uint8_t *data = (uint8_t *)ctl->buf.start;
 
   while (len > 0) {
-    uint32_t used = inl(AUDIO_COUNT_ADDR);
-    uint32_t free_space = sbuf_size - used;
-
+    uint32_t free_space = sbuf_size - inl(AUDIO_COUNT_ADDR);
     if (free_space == 0) {
-      continue; // 缓冲区已满，等待
+      // 缓冲区已满，等待
+      continue;
     }
 
-    uint32_t write_len = (len >= free_space) ? free_space : len;
-    uint32_t first_chunk = (sbuf_write_pos + write_len <= sbuf_size) ? write_len : sbuf_size - sbuf_write_pos;
+    uint32_t write_len = (len < free_space) ? len : free_space;
+    uint32_t first_chunk = (write_pos + write_len <= sbuf_size) ? write_len : sbuf_size - write_pos;
 
+    memcpy((void *)(SBUF_ADDR + write_pos), data, first_chunk);
     if (write_len > first_chunk) {
       memcpy((void *)SBUF_ADDR, data + first_chunk, write_len - first_chunk);
-      sbuf_write_pos = write_len - first_chunk;
+      write_pos = write_len - first_chunk;
     } else {
-      sbuf_write_pos += write_len;
+      write_pos += write_len;
     }
 
-    if (sbuf_write_pos >= sbuf_size) {
-      sbuf_write_pos -= sbuf_size;
-    }
+    write_pos %= sbuf_size;
 
     data += write_len;
     len -= write_len;
 
-    // 更新count寄存器
-    uint32_t count = inl(AUDIO_COUNT_ADDR);
-    outl(AUDIO_COUNT_ADDR, count + write_len);
+    // 更新 count 寄存器
+    uint32_t current_count = inl(AUDIO_COUNT_ADDR);
+    outl(AUDIO_COUNT_ADDR, current_count + write_len);
   }
 }
