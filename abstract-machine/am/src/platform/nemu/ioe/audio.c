@@ -15,6 +15,13 @@
 static uint32_t sbuf_size = 0;
 static uint32_t write_pos = 0;
 
+static void memcpy_to_mmio(uintptr_t dest, void *src, size_t n) {
+  uint8_t *data = (uint8_t *)src;
+  for (size_t i = 0; i < n; i++) {
+    outb(dest + i, data[i]);
+  }
+}
+
 void __am_audio_init() {
 }
 
@@ -50,7 +57,7 @@ void __am_audio_play(AM_AUDIO_PLAY_T *ctl) {
     uint32_t write_len = (len < free_space) ? len : free_space;
     uint32_t first_chunk = (write_pos + write_len <= sbuf_size) ? write_len : sbuf_size - write_pos;
 
-    memcpy((void *)(SBUF_ADDR + write_pos), data, first_chunk);
+    memcpy_to_mmio(SBUF_ADDR + write_pos, data, first_chunk);
     if (write_len > first_chunk) {
       memcpy((void *)SBUF_ADDR, data + first_chunk, write_len - first_chunk);
       write_pos = write_len - first_chunk;
