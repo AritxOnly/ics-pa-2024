@@ -54,9 +54,7 @@ static void audio_callback(void *userdata, Uint8 *stream, int len) {
       }
 
       read_pos %= sbuf_size;
-      SDL_LockAudio();
       count -= available;
-      SDL_UnlockAudio();
     } else {
       // 如果缓冲区没有足够的数据，填充 0，避免噪音
       memset(stream + (len - remain), 0, remain);
@@ -89,10 +87,10 @@ static void audio_io_handler(uint32_t offset, int len, bool is_write) {
           sdl_spec.callback = audio_callback;
           sdl_spec.userdata = NULL;
 
-          // 初始化 SDL 音频子系统
-          if (SDL_InitSubSystem(SDL_INIT_AUDIO) != 0) {
-            panic("Failed to initialize SDL audio subsystem: %s", SDL_GetError());
-          }
+          // // 初始化 SDL 音频子系统
+          // if (SDL_InitSubSystem(SDL_INIT_AUDIO) != 0) {
+          //   panic("Failed to initialize SDL audio subsystem: %s", SDL_GetError());
+          // }
 
           if (SDL_OpenAudio(&sdl_spec, NULL) < 0) {
             panic("SDL_OpenAudio: %s", SDL_GetError());
