@@ -1,5 +1,6 @@
 #include <am.h>
 #include <nemu.h>
+#include <klib.h>
 
 #define AUDIO_FREQ_ADDR      (AUDIO_ADDR + 0x00)
 #define AUDIO_CHANNELS_ADDR  (AUDIO_ADDR + 0x04)
@@ -8,19 +9,64 @@
 #define AUDIO_INIT_ADDR      (AUDIO_ADDR + 0x10)
 #define AUDIO_COUNT_ADDR     (AUDIO_ADDR + 0x14)
 
+#define SBUF_ADDR AUDIO_SBUF_ADDR
+#define SBUF_SIZE 0x10000
+
+static uint32_t sbuf_size = 0;
+static uint32_t sbuf_write_pos = 0;
+
 void __am_audio_init() {
 }
 
 void __am_audio_config(AM_AUDIO_CONFIG_T *cfg) {
-  cfg->present = false;
+  // cfg->present = false;
+  cfg->present = true;
+  cfg->bufsize = inl(AUDIO_SBUF_SIZE_ADDR);
 }
 
 void __am_audio_ctrl(AM_AUDIO_CTRL_T *ctrl) {
+  outl(AUDIO_FREQ_ADDR, ctrl->freq);
+  outl(AUDIO_CHANNELS_ADDR, ctrl->channels);
+  outl(AUDIO_SAMPLES_ADDR, ctrl->samples);
+  outl(AUDIO_INIT_ADDR, 1); // 初始化
+  sbuf_size = inl(AUDIO_SBUF_SIZE_ADDR);
 }
 
 void __am_audio_status(AM_AUDIO_STATUS_T *stat) {
-  stat->count = 0;
+  stat->count = inl(AUDIO_COUNT_ADDR);
 }
 
 void __am_audio_play(AM_AUDIO_PLAY_T *ctl) {
+  uint32_t len = (uintptr_t)ctl->buf.end - (uintptr_t)ctl->buf.start;
+  uint8_t *data = (uint8_t *)ctl->buf.start;
+
+  while (len > 0) {
+    uint32_t used = inl(AUDIO_COUNT_ADDR);
+    uint32_t free_space = sbuf_size - used;
+
+    if (free_space == 0) {
+      continue; // 缓冲区已满，等待
+    }
+
+    uint32_t write_len = (len >= free_space) ? free_space : len;
+    uint32_t first_chunk = (sbuf_write_pos + write_len <= sbuf_size) ? write_len : sbuf_size - sbuf_write_pos;
+
+    if (write_len > first_chunk) {
+      memcpy((void *)SBUF_ADDR, data + first_chunk, write_len - first_chunk);
+      sbuf_write_pos = write_len - first_chunk;
+    } else {
+      sbuf_write_pos += write_len;
+    }
+
+    if (sbuf_write_pos >= sbuf_size) {
+      sbuf_write_pos -= sbuf_size;
+    }
+
+    data += write_len;
+    len -= write_len;
+
+    // 更新count寄存器
+    uint32_t count = inl(AUDIO_COUNT_ADDR);
+    outl(AUDIO_COUNT_ADDR, count + write_len);
+  }
 }
