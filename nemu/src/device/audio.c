@@ -16,6 +16,7 @@
 #include <common.h>
 #include <device/map.h>
 #include <SDL2/SDL.h>
+#include <pthread.h>
 
 enum {
   reg_freq,
@@ -35,12 +36,15 @@ static uint32_t sbuf_size = CONFIG_SB_SIZE;  // 缓冲区大小
 static uint32_t count = 0;            // 缓冲区中数据的字节数
 static uint32_t read_pos = 0;         // 读取位置
 
+static pthread_mutex_t audio_mutex = PTHREAD_MUTEX_INITIALIZER;
+
 static void audio_callback(void *userdata, Uint8 *stream, int len) {
-  // 从流缓冲区中读取音频数据，填充到 stream
   int remain = len;
 
   while (remain > 0) {
+    pthread_mutex_lock(&audio_mutex);
     int available = (count < remain) ? count : remain;
+    pthread_mutex_unlock(&audio_mutex);
 
     if (available > 0) {
       if (read_pos + available <= sbuf_size) {
@@ -54,9 +58,11 @@ static void audio_callback(void *userdata, Uint8 *stream, int len) {
       }
 
       read_pos %= sbuf_size;
+
+      pthread_mutex_lock(&audio_mutex);
       count -= available;
+      pthread_mutex_unlock(&audio_mutex);
     } else {
-      // 如果缓冲区没有足够的数据，填充 0，避免噪音
       memset(stream + (len - remain), 0, remain);
       remain = 0;
       break;
@@ -87,11 +93,6 @@ static void audio_io_handler(uint32_t offset, int len, bool is_write) {
           sdl_spec.callback = audio_callback;
           sdl_spec.userdata = NULL;
 
-          // // 初始化 SDL 音频子系统
-          // if (SDL_InitSubSystem(SDL_INIT_AUDIO) != 0) {
-          //   panic("Failed to initialize SDL audio subsystem: %s", SDL_GetError());
-          // }
-
           if (SDL_OpenAudio(&sdl_spec, NULL) < 0) {
             panic("SDL_OpenAudio: %s", SDL_GetError());
           }
@@ -107,7 +108,9 @@ static void audio_io_handler(uint32_t offset, int len, bool is_write) {
     uint32_t reg_index = offset / 4;
     switch (reg_index) {
       case reg_count:
+        pthread_mutex_lock(&audio_mutex);
         audio_base[reg_count] = count;
+        pthread_mutex_unlock(&audio_mutex);
         break;
       case reg_sbuf_size:
         audio_base[reg_sbuf_size] = sbuf_size;
@@ -119,6 +122,10 @@ static void audio_io_handler(uint32_t offset, int len, bool is_write) {
 }
 
 void init_audio() {
+  if (SDL_Init(SDL_INIT_AUDIO) != 0) {
+    panic("Failed to initialize SDL: %s", SDL_GetError());
+  }
+
   uint32_t space_size = sizeof(uint32_t) * nr_reg;
   audio_base = (uint32_t *)new_space(space_size);
 #ifdef CONFIG_HAS_PORT_IO
@@ -129,6 +136,4 @@ void init_audio() {
 
   sbuf = (uint8_t *)new_space(CONFIG_SB_SIZE);
   add_mmio_map("audio-sbuf", CONFIG_SB_ADDR, sbuf, CONFIG_SB_SIZE, NULL);
-
-  SDL_InitSubSystem(SDL_INIT_AUDIO);
 }
