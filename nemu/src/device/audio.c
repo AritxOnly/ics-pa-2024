@@ -73,9 +73,6 @@ static void audio_io_handler(uint32_t offset, int len, bool is_write) {
   if (is_write) {
     switch (reg_idx) {
       case reg_init:
-      case reg_freq:
-      case reg_samples:
-      case reg_channels:
         audio_system_init();
         break;
       default: break;
