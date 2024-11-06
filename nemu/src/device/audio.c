@@ -58,11 +58,11 @@ static void audio_system_init() {
 
   // 初始化音频子系统
   if (SDL_InitSubSystem(SDL_INIT_AUDIO) != 0) {
-    panic("Audio Sub-syetem initialization failed!!!");
+    panic("%s", SDL_GetError());
   }
   // 打开音频设备
   if (SDL_OpenAudio(&audio_spec, NULL) != 0) {
-    panic("SDLOpenAudio failed!!!");
+    panic("%s", SDL_GetError());
   }
   SDL_PauseAudio(0);
   audio_base[reg_init] = 0;
