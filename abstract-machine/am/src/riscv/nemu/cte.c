@@ -8,8 +8,6 @@ Context* __am_irq_handle(Context *c) {
   if (user_handler) {
     Event ev = {0};
 
-    printf("Here\n");
-
     switch (c->mcause) {
       case -1: ev.event = EVENT_YIELD; break;
       case 0x80000007: ev.event = EVENT_IRQ_TIMER; break;
