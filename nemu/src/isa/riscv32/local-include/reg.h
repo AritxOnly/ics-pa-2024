@@ -30,4 +30,35 @@ static inline const char* reg_name(int idx) {
   return regs[check_reg_idx(idx)];
 }
 
+/* CSRs */
+
+/* CSRs寄存器映射 */
+#define MEPC 0x341
+#define MSTATUS 0x300
+#define MCAUSE 0x342
+#define MTVEC 0x305
+
+static inline int check_csr_idx(int idx) {
+  IFDEF(CONFIG_RT_CHECK, assert(idx >= 0 && idx < 4096));
+  return idx;
+}
+
+static inline int csr_hash(int idx) {
+  switch (check_csr_idx(idx)) {
+    case MEPC: return 0; break;
+    case MSTATUS: return 1; break;
+    case MCAUSE: return 2; break;
+    case MTVEC: return 3; break;
+    default: Assert(0, "Unimplemented CSRs");
+  }
+  return -1;
+}
+
+#define csr(idx) (cpu.csr[csr_hash(idx)])
+
+static inline const char* csr_name(int idx) {
+  extern const char* csrs[];
+  return csrs[csr_hash(idx)];
+}
+
 #endif

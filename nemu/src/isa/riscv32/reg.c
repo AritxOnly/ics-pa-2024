@@ -25,6 +25,10 @@ const char *regs[] = {
   "s8", "s9", "s10", "s11", "t3", "t4", "t5", "t6"
 };
 
+const char *csrs[] = {
+  "mepc", "mstatus", "mcause", "mtvec",
+};
+
 void isa_reg_display() {
   printf("Registers status:\n");
   int i;
