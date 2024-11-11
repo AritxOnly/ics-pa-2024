@@ -164,6 +164,10 @@ config FTRACE
   bool "Enable function trace function"
   default y
 
+config ETRACE
+  bool "Enable error trace function"
+  default y
+
 config WATCHPOINT
   bool "Enable watchpoints function"
   default y

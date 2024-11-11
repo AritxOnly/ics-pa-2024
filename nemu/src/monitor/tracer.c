@@ -1,5 +1,5 @@
 #include "tracer.h"
-#include "common.h"
+#include <common.h>
 #include "debug.h"
 #include <stdio.h>
 #include <elf.h>
@@ -131,4 +131,21 @@ void function_return(paddr_t from, paddr_t target) {
   }
   _Log("ret [%s]\n", func_name);
   call_depth--;
+}
+
+#define MEPC_HASH 0
+#define MSTATUS_HASH 1
+#define MCAUSE_HASH 2
+#define MTVEC_HASH 3
+
+void etrace_info(word_t NO, vaddr_t epc, word_t *csrs) {
+  _Log("Etrace information:\n");
+  _Log("------------------------------------\n");
+  _Log("Exception NO: %d\n", NO);
+  _Log("EPC: 0x%08x(%d)\n", epc, epc);
+  _Log("CSRs info:\n");
+  _Log("\tMEPC: 0x%08x(%d)\n", csrs[MEPC_HASH], csrs[MEPC_HASH]);
+  _Log("\tMSTATUS: 0x%08x(%d)\n", csrs[MSTATUS_HASH], csrs[MSTATUS_HASH]);
+  _Log("\tMCAUSE: 0x%08x(%d)\n", csrs[MCAUSE_HASH], csrs[MCAUSE_HASH]);
+  _Log("\tMTVEC: 0x%08x(%d)\n", csrs[MTVEC_HASH], csrs[MTVEC_HASH]);
 }

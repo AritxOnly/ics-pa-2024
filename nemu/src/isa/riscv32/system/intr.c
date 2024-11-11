@@ -16,6 +16,8 @@
 #include <isa.h>
 #include "../local-include/reg.h"
 
+void etrace_info(word_t NO, vaddr_t epc, word_t *csrs);
+
 word_t isa_raise_intr(word_t NO, vaddr_t epc) {
   /* TODO: Trigger an interrupt/exception with ``NO''.
    * Then return the address of the interrupt/exception vector.
@@ -27,9 +29,11 @@ word_t isa_raise_intr(word_t NO, vaddr_t epc) {
 	 *  2.	将当前的 MIE（第 3 位） 状态保存到 MPIE，相当于“备份”当前的中断状态。
 	 *  3.	将 MIE 清零，以禁用机器模式的全局中断 
    */
-   csr(MSTATUS) = csr(MSTATUS) & 0xffffff7ff; // MPIE：在进入异常或中断时保存当前的中断使能状态
-   csr(MSTATUS) = (((csr(MSTATUS) >> 3) & 1) << 7) | csr(MSTATUS);
-   csr(MSTATUS) = csr(MSTATUS) & 0xfffffff7;  // MIE：用于控制机器模式下的全局中断使能
+  csr(MSTATUS) = csr(MSTATUS) & 0xffffff7ff; // MPIE：在进入异常或中断时保存当前的中断使能状态
+  csr(MSTATUS) = (((csr(MSTATUS) >> 3) & 1) << 7) | csr(MSTATUS);
+  csr(MSTATUS) = csr(MSTATUS) & 0xfffffff7;  // MIE：用于控制机器模式下的全局中断使能
+
+  IFDEF(CONFIG_ETRACE, etrace_info(NO, epc, cpu.csr));
 
   return csr(MTVEC);
 }
