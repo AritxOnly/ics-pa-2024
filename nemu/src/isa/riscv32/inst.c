@@ -68,6 +68,7 @@ static void decode_operand(Decode *s, int *rd, word_t *src1, word_t *src2, word_
 
 static void jal(int rd, word_t imm, Decode *s);
 static void jalr(int rd, word_t imm, word_t src1, Decode *s);
+static void recover_mstatus();
 
 static int decode_exec(Decode *s) {
   int rd = 0;
@@ -151,7 +152,7 @@ static int decode_exec(Decode *s) {
 
   INSTPAT("0000000 00000 00000 000 00000 11100 11", ecall  , N, s->dnpc = isa_raise_intr(R(MUXDEF(__riscv_e, 15/* a5 */, 17/* a7 */)), s->snpc)); // Transfer control to OS
   INSTPAT("0000000 00001 00000 000 00000 11100 11", ebreak , N, NEMUTRAP(s->pc, R(10))); // R(10) is $a0  // Transfer control to debugger
-  INSTPAT("0011000 00010 00000 000 00000 11100 11", mret   , N, s->dnpc = CSR(MEPC));
+  INSTPAT("0011000 00010 00000 000 00000 11100 11", mret   , N, s->dnpc = CSR(MEPC); recover_mstatus());
   INSTPAT("??????? ????? ????? ??? ????? ????? ??", inv    , N, INV(s->pc));
   INSTPAT_END();
 
@@ -181,4 +182,10 @@ static void jalr(int rd, word_t imm, word_t src1, Decode *s) {
         } else {
           function_call(s->pc, s->dnpc);
         });
+}
+
+static void recover_mstatus() {
+  CSR(MSTATUS) = CSR(MSTATUS) & 0xfffffff7;
+  CSR(MSTATUS) = CSR(MSTATUS) | ((CSR(MSTATUS) >> 7) & 1) << 3;
+  CSR(MSTATUS) = CSR(MSTATUS) | 0x80;
 }
