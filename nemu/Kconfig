@@ -165,7 +165,11 @@ config FTRACE
   default y
 
 config ETRACE
-  bool "Enable error trace function"
+  bool "Enable exception trace function"
+  default y
+
+config STRACE
+  bool "Enable syscall trace function"
   default y
 
 config WATCHPOINT
