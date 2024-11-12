@@ -2,8 +2,8 @@
 #include "syscall.h"
 
 void strace_info(uintptr_t *a) {
-#if defined (__riscv)
   Log("Strace raising syscall %d", a[0]);
+#if defined (__riscv)
   printf("----------------------------------------\n");
   printf("Strace information\n");
   printf("----------------------------------------\n");
@@ -14,7 +14,7 @@ void strace_info(uintptr_t *a) {
   printf("a0: 0x%8x(%d)\n", a[2], a[2]);
   printf("----------------------------------------\n");
 #else
-  panic("STRACE for your selected ISA is not implemented!");
+  // panic("STRACE for your selected ISA is not implemented!");
 #endif
 }
 
@@ -32,6 +32,7 @@ void do_syscall(Context *c) {
   switch (a[0]) {
     case SYS_yield: yield(); c->GPRx = 0; break;
     case SYS_exit: halt(a[1]); break;
+    case SYS_write: break;
     default: panic("Unhandled syscall ID = %d", a[0]);
   }
 }
