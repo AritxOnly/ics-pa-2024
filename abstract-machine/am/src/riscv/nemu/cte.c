@@ -10,18 +10,15 @@ Context* __am_irq_handle(Context *c) {
     // printf("c->mcause = %d\n", c->mcause);
 
     /* 在navy-apps/libs/libos/syscall.h中有一个enum的定义 */
-    // if (c->mcause >= 0 && c->mcause < 20) {
-    //   ev.event = EVENT_SYSCALL;
-    //   goto goto_finished;
-    // }
-
-    switch (c->mcause) {
-      case -1: ev.event = EVENT_YIELD; break;
-      case 0x80000007: ev.event = EVENT_IRQ_TIMER; break;
-      default: ev.event = EVENT_ERROR; break;
+    if (c->mcause >= 0 && c->mcause < 20) {
+      ev.event = EVENT_SYSCALL;
+    } else if (c->mcause == -1) {
+      ev.event = EVENT_YIELD;
+    } else {
+      printf("Unkown mcause code: 0x%8x(%d)\n", c->mcause);
+      ev.event = EVENT_ERROR; 
     }
 
-  // goto_finished:
     c = user_handler(ev, c);
     assert(c != NULL);
   }
