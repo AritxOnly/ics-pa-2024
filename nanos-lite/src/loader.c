@@ -5,6 +5,23 @@ size_t ramdisk_read(void *buf, size_t offset, size_t len);
 size_t ramdisk_write(const void *buf, size_t offset, size_t len);
 size_t get_ramdisk_size();
 
+/* ISA宏 */
+#if defined(__ISA_AM_NATIVE__)
+  # define EXPECT_TYPE EM_X86_64
+#elif defined(__ISA_X86__)
+  # define EXPECT_TYPE EM_386
+#elif defined(__ISA_MIPS32__)
+  #define EXPECT_TYPE EM_MIPS
+#elif defined(__riscv)
+  #define EXPECT_TYPE EM_RISCV
+#elif defined(__ISA_LOONGARCH32R__)
+  #define EXPECT_TYPE 258 // 见龙芯ABI参考：
+  /* https://loongson.github.io/LoongArch-Documentation/LoongArch-ELF-ABI-CN.html */
+#else
+# error unsupported ISA __ISA__
+#endif
+
+/* 寻址空间宏 */
 #ifdef __LP64__
 # define Elf_Ehdr Elf64_Ehdr
 # define Elf_Phdr Elf64_Phdr
@@ -35,6 +52,11 @@ static uintptr_t loader(PCB *pcb, const char *filename) {
         ehdr.e_ident[EI_MAG3] == ELFMAG3)) {
     panic("ELF Magic Number evaluation fault, probably because of this is\
           not an ELF file.");
+  }
+
+  /* 判断ELF文件ISA信息 */
+  if (ehdr.e_machine != EXPECT_TYPE) {
+    panic("ELF image machine type doesn't correspond to NEMU ISA.");
   }
 
   Elf_Phdr *phdrs = malloc(ehdr.e_phnum * ehdr.e_phentsize);
