@@ -1,7 +1,9 @@
 #include <proc.h>
 #include <elf.h>
 
-#include <stdio.h>
+size_t ramdisk_read(void *buf, size_t offset, size_t len);
+size_t ramdisk_write(const void *buf, size_t offset, size_t len);
+size_t get_ramdisk_size();
 
 #ifdef __LP64__
 # define Elf_Ehdr Elf64_Ehdr
@@ -13,16 +15,19 @@
 
 static uintptr_t loader(PCB *pcb, const char *filename) {
   // TODO();
-  FILE *fp = NULL;
-  if (filename != NULL) {
-    fp = fopen(filename, "r");
-  } else {
-    fp = fopen("ramdisk.img", "r");
-  }
-  assert(fp != NULL);
+
+  /* 注释部分由于newlib没有file操作替换成nanos-lite提供的api */
+  // FILE *fp = NULL;
+  // if (filename != NULL) {
+  //   fp = fopen(filename, "r");
+  // } else {
+  //   fp = fopen("ramdisk.img", "r");
+  // }
+  // assert(fp != NULL);
 
   Elf_Ehdr ehdr;  // ELF Header
-  assert(fread(&ehdr, 1, sizeof(ehdr), fp) == sizeof(ehdr));
+  // assert(fread(&ehdr, 1, sizeof(ehdr), fp) == sizeof(ehdr));
+  assert(ramdisk_read(&ehdr, 0, sizeof(ehdr)) == sizeof(ehdr));
 
   if (!(ehdr.e_ident[EI_MAG0] == ELFMAG0 && 
         ehdr.e_ident[EI_MAG1] == ELFMAG1 &&
@@ -33,8 +38,10 @@ static uintptr_t loader(PCB *pcb, const char *filename) {
   }
 
   Elf_Phdr *phdrs = malloc(ehdr.e_phnum * ehdr.e_phentsize);
-  fseek(fp, ehdr.e_phoff, SEEK_SET);
-  if (fread(phdrs, ehdr.e_phentsize, ehdr.e_phnum, fp) != ehdr.e_phnum) {
+  // fseek(fp, ehdr.e_phoff, SEEK_SET);
+  if (ramdisk_read(phdrs, ehdr.e_phoff, 
+               ehdr.e_phnum * ehdr.e_phentsize) 
+                != ehdr.e_phnum * ehdr.e_phentsize) {
     panic("Failed to read program headers!!!");
   }
 
@@ -47,8 +54,9 @@ static uintptr_t loader(PCB *pcb, const char *filename) {
       uint32_t file_size = phdr->p_filesz;
       uint32_t offset = phdr->p_offset;
 
-      fseek(fp, offset, SEEK_SET);
-      int ret = fread((void *)(uintptr_t)vaddr, 1, file_size, fp);
+      // fseek(fp, offset, SEEK_SET);
+      // int ret = fread((void *)(uintptr_t)vaddr, 1, file_size, fp);
+      size_t ret = ramdisk_read((void *)(uintptr_t)vaddr, offset, file_size);
       assert(ret == file_size);
 
       if (mem_size > file_size) {
@@ -62,7 +70,6 @@ static uintptr_t loader(PCB *pcb, const char *filename) {
   }
 
   free(phdrs);
-  fclose(fp);
 
   return ehdr.e_entry;
 }
