@@ -148,4 +148,5 @@ void etrace_info(word_t NO, vaddr_t epc, word_t *csrs) {
   _Log("\tMSTATUS: 0x%08x(%d)\n", csrs[MSTATUS_HASH], csrs[MSTATUS_HASH]);
   _Log("\tMCAUSE: 0x%08x(%d)\n", csrs[MCAUSE_HASH], csrs[MCAUSE_HASH]);
   _Log("\tMTVEC: 0x%08x(%d)\n", csrs[MTVEC_HASH], csrs[MTVEC_HASH]);
+  _Log("------------------------------------\n");
 }
