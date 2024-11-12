@@ -3,15 +3,16 @@
 
 void strace_info(uintptr_t *a) {
 #if defined (__riscv)
-  Log("----------------------------------------\n");
-  Log("Strace information\n");
-  Log("----------------------------------------\n");
-  Log("Raising syscall: %ld\n", a[0]);
-  Log("(For riscv32)Rigisters:\n");
-  Log("a0: 0x%8lx(%ld)\n", a[0], a[0]);
-  Log("a0: 0x%8lx(%ld)\n", a[1], a[1]);
-  Log("a0: 0x%8lx(%ld)\n", a[2], a[2]);
-  Log("----------------------------------------\n");
+  Log("Strace raising syscall %d", a[0]);
+  printf("----------------------------------------\n");
+  printf("Strace information\n");
+  printf("----------------------------------------\n");
+  printf("Raising syscall: %d\n", a[0]);
+  printf("(For riscv32)Rigisters:\n");
+  printf("a0: 0x%8x(%d)\n", a[0], a[0]);
+  printf("a0: 0x%8x(%d)\n", a[1], a[1]);
+  printf("a0: 0x%8x(%d)\n", a[2], a[2]);
+  printf("----------------------------------------\n");
 #else
   panic("STRACE for your selected ISA is not implemented!");
 #endif
