@@ -152,18 +152,3 @@ void etrace_info(word_t NO, vaddr_t epc, word_t *csrs) {
   _Log("----------------------------------------\n");
 }
 
-void strace_info(uintptr_t *a) {
-#if defined (CONFIG_ISA_riscv)
-  _Log("----------------------------------------\n");
-  _Log("Strace information\n");
-  _Log("----------------------------------------\n");
-  _Log("Raising syscall: %ld\n", a[0]);
-  _Log("(For riscv32)Rigisters:\n");
-  _Log("a0: 0x%8lx(%ld)\n", a[0], a[0]);
-  _Log("a0: 0x%8lx(%ld)\n", a[1], a[1]);
-  _Log("a0: 0x%8lx(%ld)\n", a[2], a[2]);
-  _Log("----------------------------------------\n");
-#else
-  panic("STRACE for your selected ISA is not implemented!");
-#endif
-}
