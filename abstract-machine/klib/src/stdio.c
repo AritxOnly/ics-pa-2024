@@ -77,10 +77,10 @@ int vsprintf(char *out, const char *fmt, va_list args) {
       continue;
     }
     ch = *p++;
-    char space = ' ';
+    // char space = ' ';
     int cnt = 0;
     if (ch == '0') {
-      space = ch;
+      // space = ch;
       ch = *p++;
     }
     if (isdigit((unsigned char)ch)) {
@@ -95,11 +95,11 @@ int vsprintf(char *out, const char *fmt, va_list args) {
         int val = va_arg(args, int);
         char buf[PRESAVE_BUFFER];
         int_parse(buf, val);
-        if (val < 0 && space == '0') {
-          pre_space(buf + 1, space, cnt - 1, PRESAVE_BUFFER - 1);
-        } else {
-          pre_space(buf, space, cnt, PRESAVE_BUFFER);
-        }
+        // if (val < 0 && space == '0') {
+        //   pre_space(buf + 1, space, cnt - 1, PRESAVE_BUFFER - 1);
+        // } else {
+        //   pre_space(buf, space, cnt, PRESAVE_BUFFER);
+        // }
         strcpy(str, buf);
         str += strlen(buf);
         break;
@@ -114,7 +114,7 @@ int vsprintf(char *out, const char *fmt, va_list args) {
         int val = va_arg(args, int);
         char buf[PRESAVE_BUFFER];
         int_hex_parse(buf, val);
-        pre_space(buf, space, cnt, PRESAVE_BUFFER);
+        // pre_space(buf, space, cnt, PRESAVE_BUFFER);
         strcpy(str, buf);
         str += strlen(buf);
         break;
