@@ -43,9 +43,11 @@ void int_hex_parse(char* dest, uintptr_t v) {
     *(dest++) = tmp_str[i];
   }
   *dest = '\0';
+  putch('h'); putch('e'); putch('x'); putch('e'); putch('\n');
 }
 
 void pre_space(char* dest, char space, int len, int buf_sz) {
+  putch('s'); putch('p'); putch('c'); putch('s'); putch('\n');
   int curr = strlen(dest);
   int after = (curr >= len) ? curr : len;
   int shift = after - curr;
@@ -57,6 +59,7 @@ void pre_space(char* dest, char space, int len, int buf_sz) {
   for (int i = 0; i < shift; i++) {
     dest[i] = space;
   }
+  putch('s'); putch('p'); putch('c'); putch('s'); putch('\n');
 }
 
 static inline int isdigit(unsigned char ch) {
@@ -94,10 +97,8 @@ int vsprintf(char *out, const char *fmt, va_list args) {
         char buf[PRESAVE_BUFFER];
         int_parse(buf, val);
         if (val < 0 && space == '0') {
-          putch('i'); putch('f'); putch('\n');
           pre_space(buf + 1, space, cnt - 1, PRESAVE_BUFFER - 1);
         } else {
-          putch('e'); putch('s'); putch('\n');
           pre_space(buf, space, cnt, PRESAVE_BUFFER);
         }
         strcpy(str, buf);
