@@ -75,11 +75,12 @@ int vsprintf(char *out, const char *fmt, va_list args) {
     ch = *p++;
     char space = ' ';
     int cnt = 0;
-    if (ch >= '0' && ch <= '9') {
+    while (ch >= '0' && ch <= '9') {
       if (ch == '0' && cnt == 0) {
         space = ch;
       }
       cnt++;
+      ch = *p++;
     }
     switch (ch) {
       case 'd': {
