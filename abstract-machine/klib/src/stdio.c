@@ -90,15 +90,16 @@ int vsprintf(char *out, const char *fmt, va_list args) {
         ch = *p++;
       }
     }
-    putch(cnt + '0');
     switch (ch) {
       case 'd': {
         int val = va_arg(args, int);
         char buf[PRESAVE_BUFFER];
         int_parse(buf, val);
         if (val < 0 && space == '0') {
+          putch('i'); putch('f'); putch('\n');
           pre_space(buf + 1, space, cnt - 1, PRESAVE_BUFFER - 1);
         } else {
+          putch('e'); putch('s'); putch('\n');
           pre_space(buf, space, cnt, PRESAVE_BUFFER);
         }
         strcpy(str, buf);
@@ -115,7 +116,9 @@ int vsprintf(char *out, const char *fmt, va_list args) {
         int val = va_arg(args, int);
         char buf[PRESAVE_BUFFER];
         int_hex_parse(buf, val);
+        putch('1'); putch('t'); putch('\n');
         pre_space(buf, space, cnt, PRESAVE_BUFFER);
+        putch('2'); putch('t'); putch('\n');
         strcpy(str, buf);
         str += strlen(buf);
         break;
