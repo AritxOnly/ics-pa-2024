@@ -25,11 +25,11 @@ void int_parse(char* dest, int v) {
   *dest = '\0';
 }
 
-void int_hex_parse(char* dest, int v) {
+void int_hex_parse(char* dest, unsigned int v) {
   char tmp_str[20];
   size_t i = 0;
   do {
-    int rem = v % 16;
+    unsigned int rem = v % 16;
     if (rem < 10) {
       tmp_str[i++] = rem + '0';
     } else {
@@ -37,8 +37,6 @@ void int_hex_parse(char* dest, int v) {
     }
     v /= 16;
   } while (v != 0);
-  // tmp_str[i++] = 'x';
-  // tmp_str[i++] = '0';
   while (i--) {
     *(dest++) = tmp_str[i];
   }
@@ -113,7 +111,7 @@ int vsprintf(char *out, const char *fmt, va_list args) {
         break;
       }
       case 'x': {
-        int val = va_arg(args, int);
+        unsigned int val = va_arg(args, unsigned int);
         char buf[PRESAVE_BUFFER];
         int_hex_parse(buf, val);
         putch('1'); putch('t'); putch('\n');
