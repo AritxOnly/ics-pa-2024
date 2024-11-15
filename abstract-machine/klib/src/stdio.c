@@ -45,6 +45,22 @@ void int_hex_parse(char* dest, int v) {
   *dest = '\0';
 }
 
+void pre_space(char* dest, char space, int len, int buf_sz) {
+  int curr = strlen(dest);
+  int after = (curr >= len) ? curr : len;
+  int shift = after - curr;
+  if (!shift)  return;
+  assert(curr - 1 + shift < buf_sz);
+  for (int i = curr - 1; i >= 0; i++) {
+    dest[i + shift] = dest[i];
+  }
+  for (int i = 0; i < shift; i++) {
+    dest[i] = space;
+  }
+}
+
+#define PRESAVE_BUFFER 256
+
 #if !defined(__ISA_NATIVE__) || defined(__NATIVE_USE_KLIB__)
 
 int vsprintf(char *out, const char *fmt, va_list args) {
@@ -57,11 +73,20 @@ int vsprintf(char *out, const char *fmt, va_list args) {
       continue;
     }
     ch = *p++;
+    char space = ' ';
+    int cnt = 0;
+    if (ch >= '0' && ch <= '9') {
+      if (ch == '0' && cnt == 0) {
+        space = ch;
+      }
+      cnt++;
+    }
     switch (ch) {
       case 'd': {
         int val = va_arg(args, int);
-        char buf[20];
+        char buf[PRESAVE_BUFFER];
         int_parse(buf, val);
+        pre_space(buf, space, cnt, PRESAVE_BUFFER);
         strcpy(str, buf);
         str += strlen(buf);
         break;
@@ -74,8 +99,9 @@ int vsprintf(char *out, const char *fmt, va_list args) {
       }
       case 'x': {
         int val = va_arg(args, int);
-        char buf[20];
+        char buf[PRESAVE_BUFFER];
         int_hex_parse(buf, val);
+        pre_space(buf, space, cnt, PRESAVE_BUFFER);
         strcpy(str, buf);
         str += strlen(buf);
         break;
