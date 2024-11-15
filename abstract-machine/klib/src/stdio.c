@@ -54,6 +54,7 @@ void pre_space(char* dest, char space, int len, int buf_sz) {
   if (!shift)  return;
   assert(curr + shift < buf_sz);
   for (int i = curr; i >= 0; i++) {
+    putch('i'); putch('='); putch(i + '0');  putch('\n');
     dest[i + shift] = dest[i];
   }
   for (int i = 0; i < shift; i++) {
@@ -87,7 +88,7 @@ int vsprintf(char *out, const char *fmt, va_list args) {
     if (isdigit((unsigned char)ch)) {
       cnt = 0;
       while (isdigit((unsigned char)ch)) {
-        putch('l'); putch('\n');
+        // putch('l'); putch('\n');
         cnt = cnt * 10 + (ch - '0');
         ch = *p++;
       }
