@@ -148,7 +148,7 @@ int sprintf(char *out, const char *fmt, ...) {
 #define BUFFER_MAX 8192
 
 int printf(const char *fmt, ...) {
-  char buffer[BUFFER_MAX];
+  static char buffer[BUFFER_MAX];
   va_list args;
   va_start(args, fmt);
   int len = vsprintf(buffer, fmt, args);
