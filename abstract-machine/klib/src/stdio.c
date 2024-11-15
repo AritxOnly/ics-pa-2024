@@ -37,8 +37,8 @@ void int_hex_parse(char* dest, int v) {
     }
     v /= 16;
   } while (v != 0);
-  tmp_str[i++] = 'x';
-  tmp_str[i++] = '0';
+  // tmp_str[i++] = 'x';
+  // tmp_str[i++] = '0';
   while (i--) {
     *(dest++) = tmp_str[i];
   }
