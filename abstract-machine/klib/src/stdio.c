@@ -50,13 +50,20 @@ void pre_space(char* dest, char space, int len, int buf_sz) {
   int after = (curr >= len) ? curr : len;
   int shift = after - curr;
   if (!shift)  return;
-  assert(curr - 1 + shift < buf_sz);
-  for (int i = curr - 1; i >= 0; i++) {
+  assert(curr + shift < buf_sz);
+  for (int i = curr; i >= 0; i++) {
     dest[i + shift] = dest[i];
   }
   for (int i = 0; i < shift; i++) {
     dest[i] = space;
   }
+}
+
+static inline int isdigit(unsigned char ch) {
+  if (ch >= '0' || ch <= '9') {
+    return 1;
+  }
+  return 0;
 }
 
 #define PRESAVE_BUFFER 256
@@ -79,9 +86,12 @@ int vsprintf(char *out, const char *fmt, va_list args) {
       space = ch;
       ch = *p++;
     }
-    if (ch >= '1' && ch <= '9') {
-      cnt = ch - '0';
-      ch = *p++;
+    if (isdigit((unsigned char)ch)) {
+      cnt = 0;
+      while (isdigit((unsigned char)ch)) {
+        cnt = cnt * 10 + (ch - '0');
+        ch = *p++;
+      }
     }
     switch (ch) {
       case 'd': {
