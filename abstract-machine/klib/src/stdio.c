@@ -53,8 +53,8 @@ void pre_space(char* dest, char space, int len, int buf_sz) {
   int shift = after - curr;
   if (!shift)  return;
   assert(curr + shift < buf_sz);
+  printf("curr = %d\n", curr);
   for (int i = curr; i >= 0; i++) {
-    putch('i'); putch('='); putch(i + '0');  putch('\n');
     dest[i + shift] = dest[i];
   }
   for (int i = 0; i < shift; i++) {
