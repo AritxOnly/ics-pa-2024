@@ -60,10 +60,7 @@ void pre_space(char* dest, char space, int len, int buf_sz) {
 }
 
 static inline int isdigit(unsigned char ch) {
-  if (ch >= '0' || ch <= '9') {
-    return 1;
-  }
-  return 0;
+  return (ch >= '0' && ch <= '9');
 }
 
 #define PRESAVE_BUFFER 256
@@ -98,7 +95,11 @@ int vsprintf(char *out, const char *fmt, va_list args) {
         int val = va_arg(args, int);
         char buf[PRESAVE_BUFFER];
         int_parse(buf, val);
-        pre_space(buf, space, cnt, PRESAVE_BUFFER);
+        if (val < 0 && space == '0') {
+          pre_space(buf + 1, space, cnt - 1, PRESAVE_BUFFER - 1);
+        } else {
+          pre_space(buf, space, cnt, PRESAVE_BUFFER);
+        }
         strcpy(str, buf);
         str += strlen(buf);
         break;
