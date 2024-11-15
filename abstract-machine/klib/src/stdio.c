@@ -87,6 +87,7 @@ int vsprintf(char *out, const char *fmt, va_list args) {
     if (isdigit((unsigned char)ch)) {
       cnt = 0;
       while (isdigit((unsigned char)ch)) {
+        putch('l'); putch('\n');
         cnt = cnt * 10 + (ch - '0');
         ch = *p++;
       }
