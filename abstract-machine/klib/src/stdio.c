@@ -3,8 +3,10 @@
 #include <klib-macros.h>
 #include <stdarg.h>
 
+#define PRESAVE_BUFFER 256
+
 void int_parse(char* dest, int v) {
-  char tmp_str[20];
+  char tmp_str[PRESAVE_BUFFER];
   size_t i = 0;
   int is_negative = 0;
   if (v < 0) {
@@ -25,8 +27,8 @@ void int_parse(char* dest, int v) {
   *dest = '\0';
 }
 
-void int_hex_parse(char* dest, unsigned int v) {
-  char tmp_str[20];
+void int_hex_parse(char* dest, uintptr_t v) {
+  char tmp_str[PRESAVE_BUFFER];
   size_t i = 0;
   do {
     unsigned int rem = v % 16;
@@ -60,8 +62,6 @@ void pre_space(char* dest, char space, int len, int buf_sz) {
 static inline int isdigit(unsigned char ch) {
   return (ch >= '0' && ch <= '9');
 }
-
-#define PRESAVE_BUFFER 256
 
 #if !defined(__ISA_NATIVE__) || defined(__NATIVE_USE_KLIB__)
 
@@ -111,18 +111,23 @@ int vsprintf(char *out, const char *fmt, va_list args) {
         break;
       }
       case 'x': {
-        unsigned int val = va_arg(args, unsigned int);
+        uintptr_t val = va_arg(args, uintptr_t);
         char buf[PRESAVE_BUFFER];
         int_hex_parse(buf, val);
-        putch('1'); putch('t'); putch('\n');
         pre_space(buf, space, cnt, PRESAVE_BUFFER);
-        putch('2'); putch('t'); putch('\n');
         strcpy(str, buf);
         str += strlen(buf);
         break;
       }
-      case '%': {
-        *str++ = '%';
+      case 'p': {
+        void *ptr = va_arg(args, void *);
+        uintptr_t val = (uintptr_t)ptr;
+        char buf[PRESAVE_BUFFER];
+        strcpy(buf, "0x");
+        int_hex_parse(buf + 2, val);
+        pre_space(buf, space, cnt, PRESAVE_BUFFER);
+        strcpy(str, buf);
+        str += strlen(buf);
         break;
       }
       default:
