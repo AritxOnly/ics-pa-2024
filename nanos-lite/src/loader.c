@@ -88,7 +88,7 @@ static uintptr_t loader(PCB *pcb, const char *filename) {
 
       // Log("Loaded segment %d: vaddr = 0x%08x, memsz = 0x%08x, filesz = 0x%08x", 
       //     i, vaddr, mem_size, file_size);
-      Log("test %x", 10);
+      Log("test %8x", 10);
     }
   }
 
