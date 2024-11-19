@@ -72,6 +72,7 @@ size_t fs_read(int fd, void *buf, size_t len) {
     f->inner_offset += read_len;
     return read_len;
   }
+  Log("Reached here");
   return -1;
 }
 
