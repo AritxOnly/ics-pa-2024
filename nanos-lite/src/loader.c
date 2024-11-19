@@ -1,5 +1,6 @@
 #include <proc.h>
 #include <elf.h>
+#include <fs.h>
 
 size_t ramdisk_read(void *buf, size_t offset, size_t len);
 size_t ramdisk_write(const void *buf, size_t offset, size_t len);
@@ -31,20 +32,11 @@ size_t get_ramdisk_size();
 #endif
 
 static uintptr_t loader(PCB *pcb, const char *filename) {
-  // TODO();
-
-  /* 注释部分由于newlib没有file操作替换成nanos-lite提供的api */
-  // FILE *fp = NULL;
-  // if (filename != NULL) {
-  //   fp = fopen(filename, "r");
-  // } else {
-  //   fp = fopen("ramdisk.img", "r");
-  // }
-  // assert(fp != NULL);
+  int fd = fs_open(filename, 0, 0);
 
   Elf_Ehdr ehdr;  // ELF Header
-  // assert(fread(&ehdr, 1, sizeof(ehdr), fp) == sizeof(ehdr));
-  assert(ramdisk_read(&ehdr, 0, sizeof(ehdr)) == sizeof(ehdr));
+  assert(fs_read(fd, &ehdr, sizeof(ehdr)) == sizeof(ehdr));
+  // assert(ramdisk_read(&ehdr, 0, sizeof(ehdr)) == sizeof(ehdr));
 
   if (!(ehdr.e_ident[EI_MAG0] == ELFMAG0 && 
         ehdr.e_ident[EI_MAG1] == ELFMAG1 &&
@@ -60,10 +52,13 @@ static uintptr_t loader(PCB *pcb, const char *filename) {
   }
 
   Elf_Phdr *phdrs = malloc(ehdr.e_phnum * ehdr.e_phentsize);
-  // fseek(fp, ehdr.e_phoff, SEEK_SET);
-  if (ramdisk_read(phdrs, ehdr.e_phoff, 
-               ehdr.e_phnum * ehdr.e_phentsize) 
-                != ehdr.e_phnum * ehdr.e_phentsize) {
+  fs_lseek(fd, ehdr.e_phoff, SEEK_SET);
+  // if (ramdisk_read(phdrs, ehdr.e_phoff, 
+  //              ehdr.e_phnum * ehdr.e_phentsize) 
+  //               != ehdr.e_phnum * ehdr.e_phentsize) {
+  if (fs_read(fd, phdrs, 
+          sizeof(ehdr.e_phnum * ehdr.e_phentsize))
+          != ehdr.e_phnum * ehdr.e_phentsize) {
     panic("Failed to read program headers!!!");
   }
 
@@ -77,8 +72,10 @@ static uintptr_t loader(PCB *pcb, const char *filename) {
       uint32_t offset = phdr->p_offset;
 
       // fseek(fp, offset, SEEK_SET);
+      fs_lseek(fd, offset, SEEK_SET);
       // int ret = fread((void *)(uintptr_t)vaddr, 1, file_size, fp);
-      size_t ret = ramdisk_read((void *)(uintptr_t)vaddr, offset, file_size);
+      // size_t ret = ramdisk_read((void *)(uintptr_t)vaddr, offset, file_size);
+      size_t ret = fs_read(fd, (void *)(uintptr_t)vaddr, file_size);
       assert(ret == file_size);
 
       if (mem_size > file_size) {
