@@ -68,18 +68,11 @@ size_t fs_read(int fd, void *buf, size_t len) {
 
   Finfo *f = &file_table[fd];
   if (f->read) {
-    size_t read_len = f->read(buf, f->inner_offset, len);
+    size_t read_len = f->read(buf, f->inner_offset + f->disk_offset, len);
     f->inner_offset += read_len;
     return read_len;
-  } else { 
-    if (f->inner_offset + len > f->size) { 
-      // 处理溢出情况
-      len = f->size - f->inner_offset; 
-    }
-    f->read(buf, f->disk_offset + f->inner_offset, len);
-    f->inner_offset += len;
-    return len;
   }
+  return -1;
 }
 
 size_t fs_write(int fd, const void *buf, size_t len) {
