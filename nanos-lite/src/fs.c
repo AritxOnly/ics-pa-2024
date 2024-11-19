@@ -1,5 +1,8 @@
 #include <fs.h>
 
+size_t ramdisk_read(void *buf, size_t offset, size_t len);
+size_t ramdisk_write(const void *buf, size_t offset, size_t len);
+
 typedef size_t (*ReadFn) (void *buf, size_t offset, size_t len);
 typedef size_t (*WriteFn) (const void *buf, size_t offset, size_t len);
 
@@ -67,13 +70,16 @@ size_t fs_read(int fd, void *buf, size_t len) {
   }
 
   Finfo *f = &file_table[fd];
+  size_t read_len = -1;
+  size_t offset = f->disk_offset + f->inner_offset;
+  len = (f->size - f->inner_offset > len) ? len : (f->size - f->inner_offset);
+
   if (f->read) {
-    size_t read_len = f->read(buf, f->inner_offset + f->disk_offset, len);
-    f->inner_offset += read_len;
-    return read_len;
+    read_len = f->read(buf, offset, len);
+  } else {
+    read_len = ramdisk_read(buf, offset, len);
   }
-  Log("Reached here");
-  return -1;
+  return read_len;
 }
 
 size_t fs_write(int fd, const void *buf, size_t len) {
