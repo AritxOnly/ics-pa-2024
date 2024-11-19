@@ -66,12 +66,24 @@ int _open(const char *path, int flags, mode_t mode) {
   return 0;
 }
 
+/* implemented */
 int _write(int fd, void *buf, size_t count) {
   // _exit(SYS_write);
   return  _syscall_(SYS_write, fd, (uintptr_t)buf, count);
 }
 
+extern char _end;     // 链接器定义的符号
+static intptr_t pb = (intptr_t)&_end;  // Program break
+
+/* implemented */
 void *_sbrk(intptr_t increment) {
+  intptr_t old = pb + increment;
+  intptr_t new = pb + increment;
+  int ret = _syscall_(SYS_brk, new, 0, 0);
+  if (ret == 0) {
+    pb = new;
+    return (void *)old;
+  }
   return (void *)-1;
 }
 
