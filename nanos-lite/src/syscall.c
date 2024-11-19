@@ -18,6 +18,8 @@ void strace_info(uintptr_t *a) {
 #endif
 }
 
+size_t fs_write(int fd, const void *buf, int len);
+
 void do_syscall(Context *c) {
   uintptr_t a[4];
   a[0] = c->GPR1;
@@ -32,7 +34,7 @@ void do_syscall(Context *c) {
   switch (a[0]) {
     case SYS_yield: yield(); c->GPRx = 0; break;
     case SYS_exit: halt(a[1]); break;
-    case SYS_write: /*Log("Attempting to write");*/ c->GPRx = 0; break;
+    case SYS_write: c->GPRx = fs_write(a[0], (void *)a[1], a[2]); break;
     default: panic("Unhandled syscall ID = %d", a[0]);
   }
 }

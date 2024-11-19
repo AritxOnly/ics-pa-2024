@@ -45,15 +45,15 @@ void init_fs() {
 
 #define NR_FILES (sizeof(file_table) / sizeof(file_table[0]))
 
-void fs_write(int fd, const void *buf, size_t len) {
+size_t fs_write(int fd, const void *buf, size_t len) {
   if (fd < 0 || fd >= NR_FILES) {
     panic("Invalid 'fd' value %d", fd);
   }
   
   Finfo *f = &file_table[fd];
   if (f->write) {
-    f->write(buf, 0, len);
+    return f->write(buf, 0, len);
   } else {
-    panic("Unimplemented write");
+    return -1;
   }
 }
