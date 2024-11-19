@@ -61,15 +61,15 @@ void _exit(int status) {
   while (1);
 }
 
+/* implemented: not tested */
 int _open(const char *path, int flags, mode_t mode) {
-  _exit(SYS_open);
+  return _syscall_(SYS_open, (intptr_t)path, flags, mode);
   return 0;
 }
 
 /* implemented */
 int _write(int fd, void *buf, size_t count) {
-  // _exit(SYS_write);
-  return  _syscall_(SYS_write, fd, (uintptr_t)buf, count);
+  return _syscall_(SYS_write, fd, (intptr_t)buf, count);
 }
 
 extern char _end;     // 链接器定义的符号
@@ -87,8 +87,9 @@ void *_sbrk(intptr_t increment) {
   return (void *)-1;
 }
 
+/* implemented: not tested */
 int _read(int fd, void *buf, size_t count) {
-  _exit(SYS_read);
+  _syscall_(SYS_read, fd, (intptr_t)buf, count);
   return 0;
 }
 
@@ -98,7 +99,7 @@ int _close(int fd) {
 }
 
 off_t _lseek(int fd, off_t offset, int whence) {
-  _exit(SYS_lseek);
+  _syscall_(SYS_lseek, fd, offset, whence);
   return 0;
 }
 
