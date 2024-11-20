@@ -66,25 +66,6 @@ static void decode_operand(Decode *s, int *rd, word_t *src1, word_t *src2, word_
   }
 }
 
-
-#define JAL(rd, imm, s)   s->dnpc = (imm + src1) & ~1U; \
-  R(rd) = s->snpc; \
-  IFDEF(CONFIG_FTRACE, int rs1 = BITS(s->isa.inst.val, 19, 15); \
-        if (rd == 0 && rs1 == 1 && imm == 0) { \
-          function_return(s->pc, s->dnpc); \
-        } else { \
-          function_call(s->pc, s->dnpc); \
-        });
-
-#define JALR(rd, imm, src1, s) s->dnpc = (imm + src1) & ~1U; \
-  R(rd) = s->snpc; \
-  IFDEF(CONFIG_FTRACE, int rs1 = BITS(s->isa.inst.val, 19, 15);\
-        if (rd == 0 && rs1 == 1 && imm == 0) {\
-          function_return(s->pc, s->dnpc);\
-        } else {\
-          function_call(s->pc, s->dnpc);\
-        });
-
 static void jal(int rd, word_t imm, Decode *s);
 static void jalr(int rd, word_t imm, word_t src1, Decode *s);
 static void recover_mstatus();
@@ -158,8 +139,20 @@ static int decode_exec(Decode *s) {
   INSTPAT("??????? ????? ????? 111 ????? 11000 11", bgeu   , B, if (src1 >= src2) s->dnpc = s->pc + imm); 
 
   // 跳转
-  INSTPAT("??????? ????? ????? ??? ????? 11011 11", jal    , J, JAL(rd, imm, s)); // Jump and Link
-  INSTPAT("??????? ????? ????? 000 ????? 11001 11", jalr   , I, JALR(rd, imm, src1, s)); // Jump and Link Reg
+  INSTPAT("??????? ????? ????? ??? ????? 11011 11", jal    , J, 
+          s->dnpc = s->pc + imm; 
+          R(rd) = s->snpc; 
+          IFDEF(CONFIG_FTRACE, function_call(s->pc, s->dnpc));); // Jump and Link
+  INSTPAT("??????? ????? ????? 000 ????? 11001 11", jalr   , I, 
+            s->dnpc = (imm + src1) & ~1U; 
+            R(rd) = s->snpc; 
+            IFDEF(CONFIG_FTRACE, 
+                  int rs1 = BITS(s->isa.inst.val, 19, 15);
+                  if (rd == 0 && rs1 == 1 && imm == 0) {
+                    function_return(s->pc, s->dnpc);
+                  } else {
+                    function_call(s->pc, s->dnpc);
+                  });); // Jump and Link Reg
 
   // 高位立即数操作：U-type
   INSTPAT("??????? ????? ????? ??? ????? 00101 11", auipc  , U, R(rd) = s->pc + imm);
