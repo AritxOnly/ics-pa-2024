@@ -140,6 +140,7 @@ size_t fs_write(int fd, const void *buf, size_t len) {
   if (f->write) {
     write_len = f->write(buf, offset, len);
   } else {
+    Log("reached here");
     write_len = ramdisk_write(buf, offset, len);
   }
   of->offset += write_len;
