@@ -51,7 +51,11 @@ static Finfo file_table[] __attribute__((used)) = {
 };
 
 #define MAX_OPEN_FILES 128
-static OpenFile open_files[MAX_OPEN_FILES];
+static OpenFile open_files[MAX_OPEN_FILES] = {
+  [FD_STDIN] = { &file_table[0], 0, true },
+  [FD_STDOUT] = { &file_table[1], 0, true },
+  [FD_STDERR] = { &file_table[2], 0, true },
+};
 
 void init_fs() {
   // TODO: initialize the size of /dev/fb
