@@ -91,10 +91,6 @@ size_t fs_read(int fd, void *buf, size_t len) {
   size_t read_len = 0;
   size_t offset = f->disk_offset + of->offset;
 
-  if (of->offset >= f->size) {
-    return 0;
-  }
-
   // 计算实际可读取的长度，防止越界
   size_t max_len = f->size - of->offset;
   if (len > max_len) {
@@ -108,6 +104,9 @@ size_t fs_read(int fd, void *buf, size_t len) {
   if (f->read) {
     read_len = f->read(buf, offset, len);
   } else {
+    if (of->offset >= f->size) {
+      return 0;
+    }
     read_len = ramdisk_read(buf, offset, len);
   }
   of->offset += read_len;
@@ -124,10 +123,6 @@ size_t fs_write(int fd, const void *buf, size_t len) {
   size_t write_len = 0;
   size_t offset = f->disk_offset + of->offset;
 
-  if (of->offset >= f->size) {
-    return 0;
-  }
-
   size_t max_len = f->size - of->offset;
   if (len > max_len) {
     len = max_len;
@@ -141,6 +136,9 @@ size_t fs_write(int fd, const void *buf, size_t len) {
     Log("reached here");
     write_len = f->write(buf, offset, len);
   } else {
+    if (of->offset >= f->size) {
+      return 0;
+    }
     write_len = ramdisk_write(buf, offset, len);
   }
   of->offset += write_len;
