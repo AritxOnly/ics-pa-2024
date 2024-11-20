@@ -117,7 +117,7 @@ size_t fs_write(int fd, const void *buf, size_t len) {
   size_t offset = f->disk_offset + f->open_offset;
 
   if (f->write) {
-    Log("writing...");
+    Log("writing... write_len=%d", write_len);
     write_len = f->write(buf, offset, write_len);
   } else {
     panic("Unimplemented write function for fd: %d", fd);
