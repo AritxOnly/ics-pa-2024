@@ -146,7 +146,7 @@ size_t fs_write(int fd, const void *buf, size_t len) {
   return write_len;
 }
 
-size_t fs_lseek(int fd, size_t offset, int whence) {
+off_t fs_lseek(int fd, size_t offset, int whence) {
   if (fd < 0 || fd >= NR_FILES || !open_files[fd].opened) {
     panic("Invalid 'fd' value %d", fd);
   }
