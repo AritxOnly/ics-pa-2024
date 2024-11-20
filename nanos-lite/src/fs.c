@@ -125,7 +125,6 @@ size_t fs_write(int fd, const void *buf, size_t len) {
   size_t offset = f->disk_offset + of->offset;
 
   if (f->write) {
-    Log("reached here");
     write_len = f->write(buf, offset, len);
   } else {
     if (of->offset >= f->size) {
