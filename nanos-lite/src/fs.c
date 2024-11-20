@@ -13,6 +13,7 @@ typedef struct {
   size_t open_offset;
   ReadFn read;
   WriteFn write;
+  bool opened;
 } Finfo;
 
 enum {FD_STDIN, FD_STDOUT, FD_STDERR, FD_FB};
@@ -48,6 +49,7 @@ void init_fs() {
 }
 
 #define NR_FILES (sizeof(file_table) / sizeof(file_table[0]))
+#define NR_PRESET 3
 
 int fs_open(const char *pathname, int flags, int mode) {
   /* ignore flags and mode */
@@ -63,12 +65,19 @@ int fs_open(const char *pathname, int flags, int mode) {
     panic("File %s not found", pathname);
   }
 
-  if (!file_table[fd].read) {
-    file_table[fd].read = ramdisk_read;
+  Finfo *f = &file_table[fd];
+  if (f->opened) {
+    panic("fd %d is opened", fd);
   }
-  if (!file_table[fd].write) {
-    file_table[fd].write = ramdisk_write;
+
+  if (!f->read) {
+    f->read = ramdisk_read;
   }
+  if (!f->write) {
+    f->write = ramdisk_write;
+  }
+
+  f->opened = true;
 
   return fd;
 }
@@ -84,9 +93,13 @@ size_t fs_read(int fd, void *buf, size_t len) {
   size_t offset = f->disk_offset + f->open_offset;
 
   if (f->read) {
-    f->read(buf, offset, read_len);
+    read_len = f->read(buf, offset, read_len);
   } else {
     panic("Unimplemented read function for fd: %d", fd);
+  }
+
+  if (fd >= NR_PRESET) {
+    f->open_offset += read_len;
   }
 
   return read_len;
@@ -103,10 +116,15 @@ size_t fs_write(int fd, const void *buf, size_t len) {
   size_t offset = f->disk_offset + f->open_offset;
 
   if (f->write) {
-    f->write(buf, offset, write_len);
+    write_len = f->write(buf, offset, write_len);
   } else {
     panic("Unimplemented write function for fd: %d", fd);
   }
+
+  if (fd >= NR_PRESET) {
+    f->open_offset += write_len;
+  }
+
   return write_len;
 }
 
@@ -140,5 +158,7 @@ off_t fs_lseek(int fd, off_t offset, int whence) {
 }
 
 int fs_close(int fd) {
+  Finfo *f = &file_table[fd];
+  f->opened = false;
   return 0;
 }
