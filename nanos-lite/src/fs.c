@@ -78,6 +78,7 @@ int fs_open(const char *pathname, int flags, int mode) {
   }
 
   f->opened = true;
+  f->open_offset = 0;
 
   return fd;
 }
