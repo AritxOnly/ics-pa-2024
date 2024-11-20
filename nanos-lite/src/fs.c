@@ -174,7 +174,6 @@ size_t fs_lseek(int fd, size_t offset, int whence) {
   }
 
   of->offset = new_offset;
-  Log("%d", of->offset);
   return of->offset;
 }
 
