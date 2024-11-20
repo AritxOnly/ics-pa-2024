@@ -57,7 +57,7 @@ static uintptr_t loader(PCB *pcb, const char *filename) {
   //              ehdr.e_phnum * ehdr.e_phentsize) 
   //               != ehdr.e_phnum * ehdr.e_phentsize) {
   if (fs_read(fd, phdrs, 
-          sizeof(ehdr.e_phnum * ehdr.e_phentsize))
+          ehdr.e_phnum * ehdr.e_phentsize)
           != ehdr.e_phnum * ehdr.e_phentsize) {
     panic("Failed to read program headers!!!");
   }
