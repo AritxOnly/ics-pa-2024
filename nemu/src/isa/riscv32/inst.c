@@ -166,13 +166,13 @@ int isa_exec_once(Decode *s) {
   return decode_exec(s);
 }
 
-static void jal(int rd, word_t imm, Decode *s) {
+static inline void jal(int rd, word_t imm, Decode *s) {
   s->dnpc = s->pc + imm; 
   R(rd) = s->snpc; 
   IFDEF(CONFIG_FTRACE, function_call(s->pc, s->dnpc));
 }
 
-static void jalr(int rd, word_t imm, word_t src1, Decode *s) {
+static inline void jalr(int rd, word_t imm, word_t src1, Decode *s) {
   s->dnpc = (imm + src1) & ~1U; 
   R(rd) = s->snpc; 
   IFDEF(CONFIG_FTRACE, 
@@ -184,7 +184,7 @@ static void jalr(int rd, word_t imm, word_t src1, Decode *s) {
         });
 }
 
-static void recover_mstatus() {
+static inline void recover_mstatus() {
   CSR(MSTATUS) = CSR(MSTATUS) & 0xfffffff7;
   CSR(MSTATUS) = CSR(MSTATUS) | ((CSR(MSTATUS) >> 7) & 1) << 3;
   CSR(MSTATUS) = CSR(MSTATUS) | 0x80;
