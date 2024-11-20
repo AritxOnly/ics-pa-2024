@@ -93,14 +93,18 @@ size_t fs_read(int fd, void *buf, size_t len) {
   read_len = (f->open_offset + len > f->size) ? (f->size - f->open_offset) : len;
   size_t offset = f->disk_offset + f->open_offset;
 
-  if (f->read) {
-    read_len = f->read(buf, offset, read_len);
-  } else {
-    panic("Unimplemented read function for fd: %d", fd);
-  }
-
-  if (fd >= NR_PRESET) {
-    f->open_offset += read_len;
+  switch (fd) {
+    case FD_STDIN: case FD_STDOUT: case FD_STDERR:
+      read_len = f->read(buf, 0, len);
+      break;
+    default:
+      if (f->read) {
+        read_len = f->read(buf, offset, read_len);
+      } else {
+        panic("Unimplemented read function for fd: %d", fd);
+      }
+      f->open_offset += read_len;
+      break;
   }
 
   return read_len;
@@ -116,15 +120,18 @@ size_t fs_write(int fd, const void *buf, size_t len) {
   write_len = (f->open_offset + len > f->size) ? (f->size - f->open_offset) : len;
   size_t offset = f->disk_offset + f->open_offset;
 
-  if (f->write) {
-    Log("writing... write_len=%d", write_len);
-    write_len = f->write(buf, offset, write_len);
-  } else {
-    panic("Unimplemented write function for fd: %d", fd);
-  }
-
-  if (fd >= NR_PRESET) {
-    f->open_offset += write_len;
+  switch (fd) {
+    case FD_STDIN: case FD_STDOUT: case FD_STDERR:
+      write_len = f->write(buf, 0, len);
+      break;
+    default:
+      if (f->write) {
+        write_len = f->write(buf, offset, write_len);
+      } else {
+        panic("Unimplemented write function for fd: %d", fd);
+      }
+      f->open_offset += write_len;
+      break;
   }
 
   return write_len;
