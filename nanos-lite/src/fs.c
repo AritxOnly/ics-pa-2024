@@ -153,6 +153,7 @@ size_t fs_lseek(int fd, size_t offset, int whence) {
 
   OpenFile *of = &open_files[fd];
   Finfo *f = of->file;
+  Log("Opened file %s, size = %u", f->name, f->size);
   off_t new_offset;
 
   switch (whence) {
