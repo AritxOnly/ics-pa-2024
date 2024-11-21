@@ -17,9 +17,9 @@ uint32_t NDL_GetTicks() {
 }
 
 int NDL_PollEvent(char *buf, int len) {
-  int read_len = read(evtdev, buf, len);
+  int read_len = read(3, buf, len);
   printf("attempting to read %d bytes\n", read_len);
-  close(evtdev);
+  close(3);
   return (read_len != 0);
 }
 
