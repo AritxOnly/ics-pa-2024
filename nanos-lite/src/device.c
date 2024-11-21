@@ -31,11 +31,29 @@ size_t events_read(void *buf, size_t offset, size_t len) {
 }
 
 size_t dispinfo_read(void *buf, size_t offset, size_t len) {
+  AM_GPU_CONFIG_T config = io_read(AM_GPU_CONFIG);
+  if (config.present) {
+    return snprintf(buf, len, "%d %d", config.width, config.height);
+  }
   return 0;
 }
 
 size_t fb_write(const void *buf, size_t offset, size_t len) {
-  return 0;
+  AM_GPU_CONFIG_T config = io_read(AM_GPU_CONFIG);
+  int w = config.width, h = config.height;
+  if (!buf) {
+    io_write(AM_GPU_FBDRAW, 0, 0, NULL, w, h, true);
+    return 0;
+  } 
+  int write_len = 0;
+  while (offset != len) {
+    int x = offset % w, y = offset / w;
+    io_write(AM_GPU_FBDRAW, x, y, (void *)buf, 1, 2, true);
+    offset++;
+    write_len++;
+    buf++;
+  }
+  return write_len;
 }
 
 void init_device() {

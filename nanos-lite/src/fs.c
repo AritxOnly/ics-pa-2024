@@ -16,7 +16,7 @@ typedef struct {
   bool opened;
 } Finfo;
 
-enum {FD_STDIN, FD_STDOUT, FD_STDERR, FD_EVENTS, FD_FB};
+enum {FD_STDIN, FD_STDOUT, FD_STDERR, FD_EVENTS, FD_FB, FD_FBINFO};
 
 size_t invalid_read(void *buf, size_t offset, size_t len) {
   panic("should not reach here");
@@ -34,15 +34,18 @@ static Finfo file_table[] __attribute__((used)) = {
   [FD_STDOUT] = {"stdout", 0, 0, 0,invalid_read, serial_write},
   [FD_STDERR] = {"stderr", 0, 0, 0, invalid_read, serial_write},
   [FD_EVENTS] = {"/dev/events", 0, 0, 0, events_read, invalid_write},
+  [FD_FBINFO] = {"/proc/dispinfo", 0, 0, 0, dispinfo_read, invalid_write},
+  [FD_FB] = {"/dev/fb", 0, 0, 0, invalid_read, fb_write},
 #include "files.h"
 };
 
 void init_fs() {
-  // TODO: initialize the size of /dev/fb
+  Finfo *f = &file_table[FD_FB];
+  f->size = io_read(AM_GPU_CONFIG).vmemsz;  // 显存大小
 }
 
 #define NR_FILES (sizeof(file_table) / sizeof(file_table[0]))
-#define NR_PRESET 4
+#define NR_PRESET 6
 
 int fs_open(const char *pathname, int flags, int mode) {
   /* ignore flags and mode */
@@ -92,7 +95,7 @@ size_t fs_read(int fd, void *buf, size_t len) {
 
   switch (fd) {
     case FD_STDIN: case FD_STDOUT: case FD_STDERR:
-    case FD_EVENTS:
+    case FD_EVENTS: case FD_FBINFO: case FD_FB:
       read_len = f->read(buf, 0, len);
       break;
     default:
@@ -124,9 +127,10 @@ size_t fs_write(int fd, const void *buf, size_t len) {
 
   switch (fd) {
     case FD_STDIN: case FD_STDOUT: case FD_STDERR:
-    case FD_EVENTS:
+    case FD_EVENTS: case FD_FBINFO:
       write_len = f->write(buf, 0, len);
       break;
+    case FD_FB:
     default:
       if (f->write) {
         write_len = f->write(buf, offset, write_len);
