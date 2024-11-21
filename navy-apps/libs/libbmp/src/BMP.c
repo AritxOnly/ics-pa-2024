@@ -34,6 +34,8 @@ void* BMP_Load(const char *filename, int *width, int *height) {
   uint32_t *pixels = malloc(w * h * sizeof(uint32_t));
   int depth = (hdr.bitcount == 32 ? 4 : 3);
 
+  printf("%p\n", pixels);
+
   int line_off = (depth == 4 ? w * 4 : (w * 3 + 3) & ~0x3);
   for (int i = 0; i < h; i ++) {
     fseek(fp, hdr.offset + (h - 1 - i) * line_off, SEEK_SET);
@@ -42,7 +44,6 @@ void* BMP_Load(const char *filename, int *width, int *height) {
       uint8_t b = *(((uint8_t*)&pixels[w * i]) + depth * j);
       uint8_t g = *(((uint8_t*)&pixels[w * i]) + depth * j + 1);
       uint8_t r = *(((uint8_t*)&pixels[w * i]) + depth * j + 2);
-      // printf("reading i %d, j %d, w %d, h %d, w * i %d", i, j, w, h, w * i);
       pixels[w * i + j] = (r << 16) | (g << 8) | b;
     }
   }
