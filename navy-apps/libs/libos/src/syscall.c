@@ -76,7 +76,7 @@ static intptr_t pb = (intptr_t)&_end;  // Program break
 
 /* implemented */
 void *_sbrk(intptr_t increment) {
-  intptr_t old = pb + increment;
+  intptr_t old = pb;
   intptr_t new = pb + increment;
   int ret = _syscall_(SYS_brk, new, 0, 0);
   if (ret == 0) {
