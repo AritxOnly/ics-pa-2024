@@ -10,8 +10,8 @@ void strace_info(uintptr_t *a) {
   printf("Raising syscall: %d\n", a[0]);
   printf("(For riscv32)Rigisters:\n");
   printf("a0: 0x%08x(%d)\n", a[0], a[0]);
-  printf("a0: 0x%08x(%d)\n", a[1], a[1]);
-  printf("a0: 0x%08x(%d)\n", a[2], a[2]);
+  printf("a1: 0x%08x(%d)\n", a[1], a[1]);
+  printf("a2: 0x%08x(%d)\n", a[2], a[2]);
   printf("----------------------------------------\n");
 #else
   // panic("STRACE for your selected ISA is not implemented!");
