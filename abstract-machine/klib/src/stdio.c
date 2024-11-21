@@ -165,7 +165,9 @@ int printf(const char *fmt, ...) {
 int snprintf(char *out, size_t n, const char *fmt, ...) {
   va_list args;
   va_start(args, fmt);
+  putch('1');
   int len = vsnprintf(out, n, fmt, args);
+  putch('2');
   va_end(args);
   return len;
 }
