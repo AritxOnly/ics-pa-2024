@@ -16,7 +16,7 @@ typedef struct {
   bool opened;
 } Finfo;
 
-enum {FD_STDIN, FD_STDOUT, FD_STDERR, FD_FB};
+enum {FD_STDIN, FD_STDOUT, FD_STDERR, FD_EVENTS, FD_FB};
 
 size_t invalid_read(void *buf, size_t offset, size_t len) {
   panic("should not reach here");
@@ -33,6 +33,7 @@ static Finfo file_table[] __attribute__((used)) = {
   [FD_STDIN]  = {"stdin", 0, 0, 0, invalid_read, invalid_write},
   [FD_STDOUT] = {"stdout", 0, 0, 0,invalid_read, serial_write},
   [FD_STDERR] = {"stderr", 0, 0, 0, invalid_read, serial_write},
+  [FD_EVENTS] = {"/dev/events", 0, 0, 0, events_read, invalid_write},
 #include "files.h"
 };
 
@@ -41,7 +42,7 @@ void init_fs() {
 }
 
 #define NR_FILES (sizeof(file_table) / sizeof(file_table[0]))
-#define NR_PRESET 3
+#define NR_PRESET 4
 
 int fs_open(const char *pathname, int flags, int mode) {
   /* ignore flags and mode */
@@ -91,6 +92,7 @@ size_t fs_read(int fd, void *buf, size_t len) {
 
   switch (fd) {
     case FD_STDIN: case FD_STDOUT: case FD_STDERR:
+    case FD_EVENTS:
       read_len = f->read(buf, 0, len);
       break;
     default:
@@ -122,6 +124,7 @@ size_t fs_write(int fd, const void *buf, size_t len) {
 
   switch (fd) {
     case FD_STDIN: case FD_STDOUT: case FD_STDERR:
+    case FD_EVENTS:
       write_len = f->write(buf, 0, len);
       break;
     default:

@@ -28,5 +28,6 @@ int fs_close(int fd);
 
 /* device APIs */
 size_t serial_write(const void *buf, size_t offset, size_t len);
+size_t events_read(void *buf, size_t offset, size_t len);
 
 #endif
