@@ -75,6 +75,9 @@ int vsprintf(char *out, const char *fmt, va_list args) {
       *str++ = ch;
       continue;
     }
+    if (ch == '\0') {
+      break;
+    }
     ch = *p++;
     char space = ' ';
     int cnt = 0;
