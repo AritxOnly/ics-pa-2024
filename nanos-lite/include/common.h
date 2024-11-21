@@ -9,7 +9,7 @@
 
 #define ENABLE_STRACE
 #if defined (ENABLE_STRACE)
-// #define DETAILED_STRACE
+#define DETAILED_STRACE
 #endif
 
 #include <am.h>
