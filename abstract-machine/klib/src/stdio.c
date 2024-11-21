@@ -165,7 +165,7 @@ int printf(const char *fmt, ...) {
 int snprintf(char *out, size_t n, const char *fmt, ...) {
   va_list args;
   va_start(args, fmt);
-  printf("out = %p", out);
+  printf("%s", fmt);
   int len = vsnprintf(out, n, fmt, args);
   va_end(args);
   return len;
