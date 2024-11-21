@@ -7,7 +7,7 @@
 //#define MULTIPROGRAM
 //#define TIME_SHARING
 
-// #define ENABLE_STRACE
+#define ENABLE_STRACE
 #if defined (ENABLE_STRACE)
 // #define DETAILED_STRACE
 #endif
