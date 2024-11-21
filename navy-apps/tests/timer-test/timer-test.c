@@ -1,21 +1,22 @@
 #include <stdio.h>
 #include <sys/time.h>
 #include <unistd.h>
+#include <stdint.h>
+#include <NDL.h>
 
 int main() {
-    struct timeval start, current;
-    gettimeofday(&start, NULL);  // 获取起始时间
+    NDL_Init(0);
+    uint32_t start = NDL_GetTicks();
 
     while (1) {
-        gettimeofday(&current, NULL);  // 获取当前时间
+        uint32_t current = NDL_GetTicks();  // 获取当前时间
 
-        // 计算时间差，单位为微秒
-        long elapsed = (current.tv_sec - start.tv_sec) * 1000000 + (current.tv_usec - start.tv_usec);
+        long elapsed = current - start;
 
-        if (elapsed >= 500000) {  // 判断是否超过0.5秒（500,000微秒）
-            printf("已经过去了0.5秒。\n");
+        if (elapsed >= 5000) {  // 判断是否超过0.5秒
+            printf("passed 0.5 seconds\n");
             fflush(stdout);  // 刷新输出缓冲区
-            gettimeofday(&start, NULL);  // 重置起始时间
+            start = NDL_GetTicks();
         }
     }
 
