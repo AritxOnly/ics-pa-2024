@@ -177,6 +177,16 @@ int vsnprintf(char *out, size_t n, const char *fmt, va_list args) {
         break;
       }
 
+      case 'c': {
+        int val = va_arg(args, int);
+        char c = val;
+        if (remaining > 1) {
+          *str++ = c;
+        }
+        remaining--;
+        break;
+      }
+
       case 'x': {
         uintptr_t val = va_arg(args, uintptr_t);
         char buf[PRESAVE_BUFFER];
