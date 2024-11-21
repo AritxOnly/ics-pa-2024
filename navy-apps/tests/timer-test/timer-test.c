@@ -13,7 +13,7 @@ int main() {
 
         long elapsed = current - start;
 
-        if (elapsed >= 5000) {  // 判断是否超过0.5秒
+        if (elapsed >= 500) {  // 判断是否超过0.5秒
             printf("passed 0.5 seconds\n");
             fflush(stdout);  // 刷新输出缓冲区
             start = NDL_GetTicks();
