@@ -3,7 +3,7 @@
 
 void strace_info(uintptr_t *a) {
   Log("Strace raising syscall %d", a[0]);
-#if defined (__riscv)
+#if defined (DETAILED_STRACE)
   printf("----------------------------------------\n");
   printf("Strace information\n");
   printf("----------------------------------------\n");

@@ -28,19 +28,11 @@ size_t invalid_write(const void *buf, size_t offset, size_t len) {
   return 0;
 }
 
-size_t stdout_write(const void *buf, size_t offset, size_t len) {
-  const char *ch_buf = buf;
-  for (size_t i = 0; i < len; i++) {
-    putch(ch_buf[i]);
-  }
-  return len;
-}
-
 /* This is the information about all files in disk. */
 static Finfo file_table[] __attribute__((used)) = {
   [FD_STDIN]  = {"stdin", 0, 0, 0, invalid_read, invalid_write},
-  [FD_STDOUT] = {"stdout", 0, 0, 0,invalid_read, stdout_write},
-  [FD_STDERR] = {"stderr", 0, 0, 0, invalid_read, stdout_write},
+  [FD_STDOUT] = {"stdout", 0, 0, 0,invalid_read, serial_write},
+  [FD_STDERR] = {"stderr", 0, 0, 0, invalid_read, serial_write},
 #include "files.h"
 };
 
@@ -80,6 +72,10 @@ int fs_open(const char *pathname, int flags, int mode) {
   f->opened = true;
   f->open_offset = 0;
 
+#if defined (ENABLE_STRACE)
+  Log("Strace open file %d(name: %s)", fd, f->name);
+#endif
+
   return fd;
 }
 
@@ -107,6 +103,10 @@ size_t fs_read(int fd, void *buf, size_t len) {
       break;
   }
 
+#if defined (ENABLE_STRACE)
+  Log("Strace read file %d(name: %s), at offset 0x%08x(%d), length %d", fd, f->name, offset, offset, read_len);
+#endif
+
   return read_len;
 }
 
@@ -133,6 +133,10 @@ size_t fs_write(int fd, const void *buf, size_t len) {
       f->open_offset += write_len;
       break;
   }
+
+#if defined (ENABLE_STRACE)
+  Log("Strace write file %d(name: %s), at offset 0x%08x(%d), length %d", fd, f->name, offset, offset, write_len);
+#endif
 
   return write_len;
 }
@@ -163,11 +167,20 @@ off_t fs_lseek(int fd, off_t offset, int whence) {
       panic("Should not reach here");
   }
 
+#if defined (ENABLE_STRACE)
+  Log("Strace seek file %d(name: %s), offset 0x%08x(%d), whence ID %d", fd, f->name, f->open_offset, f->open_offset, whence);
+#endif
+
   return f->open_offset;
 }
 
 int fs_close(int fd) {
   Finfo *f = &file_table[fd];
   f->opened = false;
+
+#if defined (ENABLE_STRACE)
+  Log("Strace close file %d(name: %s)", fd, f->name);
+#endif
+
   return 0;
 }
