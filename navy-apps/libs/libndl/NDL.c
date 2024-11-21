@@ -18,8 +18,8 @@ uint32_t NDL_GetTicks() {
 
 int NDL_PollEvent(char *buf, int len) {
   int fd = open("/dev/events", O_RDONLY);
-  printf("fd %d\n", fd);
   int read_len = read(fd, buf, len);
+  printf("attempting to read %d bytes", read_len);
   close(fd);
   return (read_len != 0);
 }
