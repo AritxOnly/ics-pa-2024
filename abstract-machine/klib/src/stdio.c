@@ -167,11 +167,13 @@ int vsnprintf(char *out, size_t n, const char *fmt, va_list args) {
       }
 
       case 's': {
+        printf("reached here");
         char *val = va_arg(args, char *);
         if (val == NULL) val = "(null)"; // 防止 val 为 NULL
         size_t len = strlen(val);
         size_t copy_len = (len < remaining - 1) ? len : remaining - 1;
         strncpy(str, val, copy_len);
+        printf("reached here2");
         str += copy_len;
         remaining -= copy_len;
         break;
