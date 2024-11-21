@@ -26,8 +26,8 @@ size_t events_read(void *buf, size_t offset, size_t len) {
   AM_INPUT_KEYBRD_T kv = io_read(AM_INPUT_KEYBRD);
   if (kv.keycode != AM_KEY_NONE) {
     Log("write %08x, %s", (intptr_t)buf, keyname[kv.keycode]);
-    size_t ret = snprintf(buf, len, "k%c %s", (kv.keydown ? 'd' : 'u'), keyname[kv.keydown]);
-    Log("here");
+    size_t ret = snprintf(buf, len, "k%c %s", (kv.keydown ? 'd' : 'u'), keyname[kv.keycode]);
+    // Log("here");
     return ret;
   }
   return 0;
