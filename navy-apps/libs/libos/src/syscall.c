@@ -61,7 +61,7 @@ void _exit(int status) {
   while (1);
 }
 
-/* implemented: not tested */
+/* implemented */
 int _open(const char *path, int flags, mode_t mode) {
   return _syscall_(SYS_open, (intptr_t)path, flags, mode);
 }
@@ -86,22 +86,24 @@ void *_sbrk(intptr_t increment) {
   return (void *)-1;
 }
 
-/* implemented: not tested */
+/* implemented */
 int _read(int fd, void *buf, size_t count) {
   return _syscall_(SYS_read, fd, (intptr_t)buf, count);
 }
 
+/* implemented */
 int _close(int fd) {
   return _syscall_(SYS_close, fd, 0, 0);
 }
 
+/* implemented */
 off_t _lseek(int fd, off_t offset, int whence) {
   return _syscall_(SYS_lseek, fd, offset, whence);
 }
 
+/* implemented: not tested */
 int _gettimeofday(struct timeval *tv, struct timezone *tz) {
-  _exit(SYS_gettimeofday);
-  return 0;
+  return _syscall_(SYS_gettimeofday, (intptr_t)tv, (intptr_t)tz, 0);
 }
 
 int _execve(const char *fname, char * const argv[], char *const envp[]) {

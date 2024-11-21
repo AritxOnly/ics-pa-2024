@@ -37,6 +37,13 @@ void do_syscall(Context *c) {
     case SYS_write: c->GPRx = fs_write(a[1], (void *)a[2], a[3]); break;
     case SYS_lseek: c->GPRx = fs_lseek(a[1], a[2], a[3]); break;
     case SYS_close: c->GPRx = fs_close(a[1]); break;
+    case SYS_gettimeofday:
+      uint32_t clock = io_read(AM_TIMER_UPTIME).us;
+      struct timeval *tv = (struct timeval *)a[1];
+      tv->tv_sec = clock / 1000;
+      tv->tv_usec = clock;
+      c->GPRx = 0;
+      break;
     case SYS_brk: c->GPRx = 0; break;
     default: panic("Unhandled syscall ID = %d", a[0]);
   }
