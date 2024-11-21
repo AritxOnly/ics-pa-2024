@@ -42,7 +42,7 @@ void *malloc(size_t size) {
   addr_offset += size;
   return addr_l;
 #endif
-  return NULL;
+  // return NULL;
 }
 
 void free(void *ptr) {
