@@ -18,6 +18,11 @@ void strace_info(uintptr_t *a) {
 #endif
 }
 
+struct timeval {
+  long tv_sec;
+  long tv_usec;
+};
+
 void do_syscall(Context *c) {
   uintptr_t a[4];
   a[0] = c->GPR1;
@@ -40,8 +45,12 @@ void do_syscall(Context *c) {
     case SYS_gettimeofday:
       uint32_t clock = io_read(AM_TIMER_UPTIME).us;
       struct timeval *tv = (struct timeval *)a[1];
-      tv->tv_sec = clock / 1000;
-      tv->tv_usec = clock;
+      if (tv == NULL) {
+        c->GPRx = -1;
+        break;
+      }
+      tv->tv_sec = clock / 1000000;
+      tv->tv_usec = clock % 1000000;
       c->GPRx = 0;
       break;
     case SYS_brk: c->GPRx = 0; break;
