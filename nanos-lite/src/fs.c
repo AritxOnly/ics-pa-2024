@@ -40,6 +40,7 @@ static Finfo file_table[] __attribute__((used)) = {
 };
 
 void init_fs() {
+  // initialize FD_DB
   Finfo *f = &file_table[FD_FB];
   f->size = io_read(AM_GPU_CONFIG).vmemsz;  // 显存大小
 }

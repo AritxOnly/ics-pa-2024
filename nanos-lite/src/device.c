@@ -39,21 +39,45 @@ size_t dispinfo_read(void *buf, size_t offset, size_t len) {
 }
 
 size_t fb_write(const void *buf, size_t offset, size_t len) {
-  AM_GPU_CONFIG_T config = io_read(AM_GPU_CONFIG);
-  int w = config.width, h = config.height;
   if (!buf) {
+    AM_GPU_CONFIG_T config = io_read(AM_GPU_CONFIG);
+    int w = config.width, h = config.height;
     io_write(AM_GPU_FBDRAW, 0, 0, NULL, w, h, true);
     return 0;
-  } 
-  int write_len = 0;
-  while (offset != len) {
-    int x = offset % w, y = offset / w;
-    io_write(AM_GPU_FBDRAW, x, y, (void *)buf, 1, 2, true);
-    offset++;
-    write_len++;
-    buf++;
   }
-  return write_len;
+
+  size_t pixel_offset = offset / sizeof(uint32_t);
+  size_t pixels_to_write = len / sizeof(uint32_t);
+  const uint32_t *pixels = (const uint32_t *)buf;
+
+  AM_GPU_CONFIG_T config = io_read(AM_GPU_CONFIG);
+  int w = config.width;
+
+  size_t x = pixel_offset % w;
+  size_t y = pixel_offset / w;
+
+  size_t remaining_pixels = pixels_to_write;
+  size_t write_len = 0;
+
+  while (remaining_pixels > 0) {
+    size_t pixels_in_line = w - x;
+    if (pixels_in_line > remaining_pixels) {
+      pixels_in_line = remaining_pixels;
+    }
+
+    io_write(AM_GPU_FBDRAW, x, y, (void *)pixels, pixels_in_line, 1, false);
+
+    pixels += pixels_in_line;
+    remaining_pixels -= pixels_in_line;
+    write_len += pixels_in_line;
+
+    x = 0;
+    y += 1;
+  }
+
+  io_write(AM_GPU_FBDRAW, 0, 0, NULL, 0, 0, true);
+
+  return write_len * sizeof(uint32_t);
 }
 
 void init_device() {
