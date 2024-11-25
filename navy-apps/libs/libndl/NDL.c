@@ -25,9 +25,14 @@ int NDL_PollEvent(char *buf, int len) {
 
 void NDL_OpenCanvas(int *w, int *h) {
   char buf[64] = {};
-  read(4, buf, 64);
-  buf[63] = '\0';
+  ssize_t bytes_read = read(4, buf, sizeof(buf) - 1);
+  if (bytes_read <= 0) {
+    perror("Error reading /dev/dispinfo");
+    exit(EXIT_FAILURE);
+  }
+  buf[bytes_read] = '\0';
   sscanf(buf, "%d %d", &screen_w, &screen_h);
+
   if (screen_h < *h || *h <= 0) {
     *h = screen_h;
   }
@@ -58,20 +63,23 @@ void NDL_OpenCanvas(int *w, int *h) {
 void NDL_DrawRect(uint32_t *pixels, int x, int y, int w, int h) {
   uint32_t *ptr = pixels;
   int act_w, act_h;
-  /* to handle the overflow */
+
   act_w = (x + w > canvas_w) ? (canvas_w - x) : w;
   act_h = (y + h > canvas_h) ? (canvas_h - y) : h;
+
   if (act_w <= 0 || act_h <= 0) {
     return;
   }
+
+  int x_offset = (screen_w - canvas_w) / 2;
+  int y_offset = (screen_h - canvas_h) / 2;
+
   for (int i = 0; i < act_h; i++) {
-    uint32_t offset = screen_w * (y + i + (screen_h - canvas_h) / 2) +
-                      (x + (screen_w - canvas_w) / 2);
-    lseek(5, offset, SEEK_SET);
+    uint32_t offset = screen_w * (y + i + y_offset) + (x + x_offset);
+    lseek(5, offset * sizeof(uint32_t), SEEK_SET);
     write(5, ptr, act_w * sizeof(uint32_t));
     ptr += w;
   }
-  // close(5);
 }
 
 void NDL_OpenAudio(int freq, int channels, int samples) {
