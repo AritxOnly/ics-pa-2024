@@ -22,4 +22,6 @@ int NDL_QueryAudio();
 }
 #endif
 
+#define UNIMPL printf("Unimplimented"); assert(0);
+
 #endif

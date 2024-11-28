@@ -7,12 +7,54 @@
 void SDL_BlitSurface(SDL_Surface *src, SDL_Rect *srcrect, SDL_Surface *dst, SDL_Rect *dstrect) {
   assert(dst && src);
   assert(dst->format->BitsPerPixel == src->format->BitsPerPixel);
+
+  // 确定源矩形
+  int src_x = 0, src_y = 0, src_w = src->w, src_h = src->h;
+  if (srcrect != NULL) {
+    src_x = srcrect->x;
+    src_y = srcrect->y;
+    src_w = srcrect->w;
+    src_h = srcrect->h;
+  }
+
+  // 确定目标矩形
+  int dst_x = 0, dst_y = 0;
+  if (dstrect != NULL) {
+      dst_x = dstrect->x;
+      dst_y = dstrect->y;
+  }
+
+  // 简单的边界检查
+  if (src_x < 0 || src_y < 0 || src_w <= 0 || src_h <= 0 ||
+      dst_x < 0 || dst_y < 0 ||
+      src_x + src_w > src->w || src_y + src_h > src->h ||
+      dst_x + src_w > dst->w || dst_y + src_h > dst->h) {
+    fprintf(stderr, "BlitSurface: Invalid rectangle dimensions.\n");
+  }
+
+  // 逐行复制像素数据
+  for (int i = 0; i < src_h; i++) {
+    uint32_t *src_pixels = src->pixels + (src_y + i) * src->w + src_x;
+    uint32_t *dst_pixels = dst->pixels + (dst_y + i) * dst->w + dst_x;
+    memcpy(dst_pixels, src_pixels, src_w * sizeof(uint32_t));
+  }
 }
 
 void SDL_FillRect(SDL_Surface *dst, SDL_Rect *dstrect, uint32_t color) {
 }
 
 void SDL_UpdateRect(SDL_Surface *s, int x, int y, int w, int h) {
+  if (w == 0 || h == 0) {
+    // 默认为更新整个屏幕
+    x = 0;
+    y = 0;
+    w = s->w;
+    h = s->h;
+  }
+
+  uint32_t *pixels = s->pixels + y * s->w + x;
+
+  NDL_DrawRect(pixels, x, y, w, h);
 }
 
 // APIs below are already implemented.
