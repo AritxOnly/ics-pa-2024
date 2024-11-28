@@ -9,35 +9,48 @@ void SDL_BlitSurface(SDL_Surface *src, SDL_Rect *srcrect, SDL_Surface *dst, SDL_
   assert(dst && src);
   assert(dst->format->BitsPerPixel == src->format->BitsPerPixel);
 
-  // 确定源矩形
-  int src_x = 0, src_y = 0, src_w = src->w, src_h = src->h;
+
+  int bits = dst->format->BitsPerPixel;
+  if (bits != 32 && bits != 8) {
+    fprintf(stderr, "Unsupported BitsPerPixel: %d\n", bits);
+    return;
+  }
+
+  int sx = 0, sy = 0, sw = src->w, sh = src->h;
   if (srcrect != NULL) {
-    src_x = srcrect->x;
-    src_y = srcrect->y;
-    src_w = srcrect->w;
-    src_h = srcrect->h;
+    sx = srcrect->x;
+    sy = srcrect->y;
+    sw = srcrect->w;
+    sh = srcrect->h;
   }
 
-  // 确定目标矩形
-  int dst_x = 0, dst_y = 0;
+  int dx = 0, dy = 0;
   if (dstrect != NULL) {
-      dst_x = dstrect->x;
-      dst_y = dstrect->y;
+    dx = dstrect->x;
+    dy = dstrect->y;
   }
 
-  // 简单的边界检查
-  if (src_x < 0 || src_y < 0 || src_w <= 0 || src_h <= 0 ||
-      dst_x < 0 || dst_y < 0 ||
-      src_x + src_w > src->w || src_y + src_h > src->h ||
-      dst_x + src_w > dst->w || dst_y + src_h > dst->h) {
+  if (sx < 0 || sy < 0 || sw <= 0 || sh <= 0 ||
+    dx < 0 || dy < 0 ||
+    sx + sw > src->w || sy + sh > src->h ||
+    dx + sw > dst->w || dy + sh > dst->h) {
     fprintf(stderr, "BlitSurface: Invalid rectangle dimensions.\n");
+    return;
   }
 
-  // 逐行复制像素数据
-  for (int i = 0; i < src_h; i++) {
-    uint32_t *src_pixels = src->pixels + (src_y + i) * src->w + src_x;
-    uint32_t *dst_pixels = dst->pixels + (dst_y + i) * dst->w + dst_x;
-    memcpy(dst_pixels, src_pixels, src_w * sizeof(uint32_t));
+  for (int j = 0; j < sh; j++) {
+    int src_row = (sy + j) * src->w + sx;
+    int dst_row = (dy + j) * dst->w + dx;
+
+    if (bits == 32) {
+      uint32_t *src_pixels = (uint32_t *)src->pixels + src_row;
+      uint32_t *dst_pixels = (uint32_t *)dst->pixels + dst_row;
+      memcpy(dst_pixels, src_pixels, sw * sizeof(uint32_t));
+    } else if (bits == 8) {
+      uint8_t *src_pixels = (uint8_t *)src->pixels + src_row;
+      uint8_t *dst_pixels = (uint8_t *)dst->pixels + dst_row;
+      memcpy(dst_pixels, src_pixels, sw * sizeof(uint8_t));
+    }
   }
 }
 
@@ -53,9 +66,35 @@ void SDL_UpdateRect(SDL_Surface *s, int x, int y, int w, int h) {
     h = s->h;
   }
 
-  uint32_t *pixels = s->pixels + y * s->w + x;
+  int bits = s->format->BitsPerPixel;
+  if (bits != 32 && bits != 8) {
+    fprintf(stderr, "Unsupported BitsPerPixel: %d\n", bits);
+    return;
+  }
 
-  NDL_DrawRect(pixels, x, y, w, h);
+  if (bits == 32) {
+    uint32_t *pixels = s->pixels + y * s->w + x;
+    NDL_DrawRect(pixels, x, y, w, h);
+  } else {
+    uint32_t *tmp_pxl = malloc(w * h * sizeof(uint32_t));
+    if (tmp_pxl == NULL) {
+      fprintf(stderr, "Failed to allocate temp pixels!\n");
+      return;
+    }
+
+    SDL_Color *palette = s->format->palette->colors;
+    for (int j = 0; j < h; j++) {
+      uint8_t *src_row = (uint8_t *)s->pixels + (y + j) * s->w + x;
+      uint32_t *dst_row = tmp_pxl + j * w;
+      for (int i = 0; i < w; i++) {
+        uint8_t color_idx = src_row[i];
+        dst_row[i] = palette[color_idx].val;
+      }
+    }
+
+    NDL_DrawRect(tmp_pxl, x, y, w, h);
+    free(tmp_pxl);
+  }
 }
 
 // APIs below are already implemented.
