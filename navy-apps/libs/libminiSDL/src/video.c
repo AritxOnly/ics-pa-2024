@@ -82,9 +82,12 @@ void SDL_FillRect(SDL_Surface *dst, SDL_Rect *dstrect, uint32_t color) {
       uint8_t *pixel = row + bbp * j;
       switch (bits) {
         case 32: *(uint32_t *)pixel = color; break;
-        case 8: 
-          SDL_Color *palette = dst->format->palette->colors; 
+        case 8:
+          printf("Reached %d\n", __LINE__); 
+          SDL_Color *palette = dst->format->palette->colors;
+          printf("Reached %d\n", __LINE__); 
           *pixel = palette[(uint8_t)color].val; 
+          printf("Reached %d\n", __LINE__); 
           break;
         default:  fprintf(stderr, "Should not reach here"); break;
       }
