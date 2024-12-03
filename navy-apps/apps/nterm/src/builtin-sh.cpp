@@ -1,6 +1,7 @@
 #include <nterm.h>
 #include <stdarg.h>
 #include <unistd.h>
+#include <string.h>
 #include <SDL.h>
 
 char handle_key(SDL_Event *ev);
@@ -22,7 +23,33 @@ static void sh_prompt() {
   sh_printf("sh> ");
 }
 
+static int cmd_echo(char *msg) {
+  sh_printf(msg);
+  return 0;
+}
+
+static struct {
+  const char *name;
+  const char *description;
+  int (*handler) (char *);
+} cmd_table [] = {
+  {"echo", "", cmd_echo},
+};
+
+#define NR_CMD 1
+
 static void sh_handle_cmd(const char *cmd) {
+  char *first = strtok((char *)cmd, " ");
+  char *args = (char *)cmd + strlen(cmd) + 1;
+  int i;
+  for (i = 0; i < NR_CMD; i ++) {
+    if (strcmp(cmd, cmd_table[i].name) == 0) {
+      if (cmd_table[i].handler(args) < 0) { return; }
+      break;
+    }
+  }
+
+  if (i == NR_CMD) { printf("Unknown command '%s'\n", cmd); }
 }
 
 void builtin_sh_run() {
