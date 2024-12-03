@@ -73,11 +73,13 @@ void SDL_FillRect(SDL_Surface *dst, SDL_Rect *dstrect, uint32_t color) {
     return;
   }
 
+  int bbp = dst->format->BytesPerPixel;
+
   for (int i = y; i < y + h; i++) {
     // 行索引
     uint8_t *row = dst->pixels + i * dst->pitch;
-    for (int j = x; j < x + w; i++) {
-      uint8_t *pixel = row + bits * j;
+    for (int j = x; j < x + w; j++) {
+      uint8_t *pixel = row + bbp * j;
       switch (bits) {
         case 32: *(uint32_t *)pixel = color; break;
         case 8: *pixel = (uint8_t)color; break;
