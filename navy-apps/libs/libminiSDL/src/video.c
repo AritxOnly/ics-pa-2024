@@ -55,6 +55,36 @@ void SDL_BlitSurface(SDL_Surface *src, SDL_Rect *srcrect, SDL_Surface *dst, SDL_
 }
 
 void SDL_FillRect(SDL_Surface *dst, SDL_Rect *dstrect, uint32_t color) {
+  int w, h, x, y;
+  if (dstrect) {
+    x = dstrect->x;
+    y = dstrect->y;
+    w = dstrect->w;
+    h = dstrect->h;
+  } else {
+    x = 0;
+    y = 0;
+    w = dst->w;
+    h = dst->h;
+  }
+  int bits = dst->format->BitsPerPixel;
+  if (bits != 32 && bits != 8) {
+    fprintf(stderr, "Unsupported BitsPerPixel: %d\n", bits);
+    return;
+  }
+
+  for (int i = y; i < y + h; i++) {
+    // 行索引
+    uint8_t *row = dst->pixels + i * dst->pitch;
+    for (int j = x; j < x + w; i++) {
+      uint8_t *pixel = row + bits * j;
+      switch (bits) {
+        case 32: *(uint32_t *)pixel = color; break;
+        case 8: *pixel = (uint8_t)color; break;
+        default:  fprintf(stderr, "Should not reach here"); break;
+      }
+    }
+  }
 }
 
 void SDL_UpdateRect(SDL_Surface *s, int x, int y, int w, int h) {
