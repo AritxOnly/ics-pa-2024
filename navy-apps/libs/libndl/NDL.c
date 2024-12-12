@@ -18,20 +18,23 @@ uint32_t NDL_GetTicks() {
 }
 
 int NDL_PollEvent(char *buf, int len) {
-  int read_len = read(3, buf, len);
-  close(3);
+  int fd = open("/dev/events", O_RDONLY);
+  int read_len = read(fd, buf, len);
+  close(fd);
   return (read_len != 0);
 }
 
 void NDL_OpenCanvas(int *w, int *h) {
+  int fd = open("/proc/dispinfo", O_RDONLY);
   char buf[64] = {};
-  ssize_t bytes_read = read(4, buf, sizeof(buf) - 1);
+  ssize_t bytes_read = read(fd, buf, sizeof(buf) - 1);
   if (bytes_read <= 0) {
     perror("Error reading /dev/dispinfo");
     exit(EXIT_FAILURE);
   }
   buf[bytes_read] = '\0';
-  sscanf(buf, "%d %d", &screen_w, &screen_h);
+  sscanf(buf, "WIDTH:%d\nHEIGHT:%d", &screen_w, &screen_h);
+  printf("[%d, %d]", screen_w, screen_h);
 
   if (screen_h < *h || *h <= 0) {
     *h = screen_h;
