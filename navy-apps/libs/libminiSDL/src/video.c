@@ -224,7 +224,7 @@ void SDL_SoftStretch(SDL_Surface *src, SDL_Rect *srcrect, SDL_Surface *dst, SDL_
   int w = (srcrect == NULL ? src->w : srcrect->w);
   int h = (srcrect == NULL ? src->h : srcrect->h);
 
-  printf("src: w %d, h %d\ndst: w %d, h %d\n", src->w, src->h, dst->w, dst->h);
+  // printf("src: w %d, h %d\ndst: w %d, h %d\n", src->w, src->h, dst->w, dst->h);
 
   assert(dstrect);
   if(w == dstrect->w && h == dstrect->h) {
