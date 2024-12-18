@@ -40,23 +40,25 @@ static struct {
 
 // #error cmd's "\n" should be handled
 static void sh_handle_cmd(const char *cmd) {
-  char *first = strtok((char *)cmd, " ");
-  char *args = (char *)cmd + strlen(cmd) + 1;
-  printf("first : %s", first);
+  char buf[256];
+  strncpy(buf, cmd, strlen(cmd) - 1); // 去掉末尾的\n
+  char *first = strtok((char *)buf, " ");
+  char *args = (char *)buf + strlen(buf) + 1;
+  printf("first : %s", buf);
   assert(0 && "for debug");  
   int i;
   for (i = 0; i < NR_CMD; i ++) {
-    if (strcmp(cmd, cmd_table[i].name) == 0) {
+    if (strcmp(buf, cmd_table[i].name) == 0) {
       if (cmd_table[i].handler(args) < 0) { return; }
       break;
     }
   }
   if (i == NR_CMD) {
-    FILE *fp = fopen(first, "r");
+    FILE *fp = fopen(buf, "r");
     if (!fp) {
-      printf("Unknown command '%s'\n", cmd);
+      printf("Unknown command '%s'\n", buf);
     } else {
-      execve(first, NULL, NULL);
+      execve(buf, NULL, NULL);
       fclose(fp);
     }
   }
