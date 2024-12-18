@@ -63,23 +63,16 @@ static void sh_handle_cmd(const char *cmd) {
     }
   }
   if (i == NR_CMD) {
-    FILE *fp = fopen(buf, "r");
-    if (!fp) {
-      fclose(fp);
-      printf("Unknown command '%s'\n", buf);
-    } else {
-      char *token = args;
-      char *argv[64] = { NULL };
-      int ptr = 0;
-      while (token != NULL) {
-        printf("%s\n", token);
-        token = strtok(NULL, " ");
-        argv[ptr++] = token;
-      }
-
-      fclose(fp);
-      execvp(buf, argv);
+    char *token = args;
+    char *argv[64] = { NULL };
+    int ptr = 0;
+    while (token != NULL) {
+      printf("%s\n", token);
+      token = strtok(NULL, " ");
+      argv[ptr++] = token;
     }
+
+    execvp(buf, argv);
   }
 }
 
