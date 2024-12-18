@@ -63,9 +63,9 @@ static void sh_handle_cmd(const char *cmd) {
     }
   }
   if (i == NR_CMD) {
-    char *token = args;
-    char *argv[64] = { NULL };
-    int ptr = 0;
+    char *token = strtok(args, " ");
+    char *argv[64] = { first, token };
+    int ptr = 2;
     while (token != NULL) {
       printf("%s\n", token);
       token = strtok(NULL, " ");
@@ -79,7 +79,7 @@ static void sh_handle_cmd(const char *cmd) {
 void builtin_sh_run() {
   sh_banner();
   sh_prompt();
-  setenv("PATH", "/usr/bin:/bin:$PATH", 0);
+  setenv("PATH", "/bin", 0);
 
   while (1) {
     SDL_Event ev;
