@@ -26,7 +26,7 @@ struct timeval {
 
 void naive_uload(PCB *pcb, const char *filename);
 
-static char cur_bin[64];
+static char cur_bin[64] = ENTRY_BIN;
 
 void do_syscall(Context *c) {
   uintptr_t a[4];
