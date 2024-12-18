@@ -1,5 +1,6 @@
 #include <common.h>
 #include "syscall.h"
+#include <proc.h>
 
 void strace_info(uintptr_t *a) {
   Log("Strace raising syscall %d", a[0]);
@@ -22,6 +23,8 @@ struct timeval {
   long tv_sec;
   long tv_usec;
 };
+
+void naive_uload(PCB *pcb, const char *filename);
 
 void do_syscall(Context *c) {
   uintptr_t a[4];
@@ -54,6 +57,10 @@ void do_syscall(Context *c) {
       c->GPRx = 0;
       break;
     case SYS_brk: c->GPRx = 0; break;
+    case SYS_execve:
+      // #warning TODO
+      naive_uload(NULL, (const char *)a[1]);
+      break;
     default: panic("Unhandled syscall ID = %d", a[0]);
   }
 }
