@@ -68,8 +68,17 @@ static void sh_handle_cmd(const char *cmd) {
       fclose(fp);
       printf("Unknown command '%s'\n", buf);
     } else {
+      char *token = args;
+      char *argv[64] = { NULL };
+      int ptr = 0;
+      while (token != NULL) {
+        printf("%s\n", token);
+        token = strtok(NULL, " ");
+        argv[ptr++] = token;
+      }
+
       fclose(fp);
-      execve(buf, NULL, NULL);
+      execvp(buf, argv);
     }
   }
 }
@@ -77,6 +86,7 @@ static void sh_handle_cmd(const char *cmd) {
 void builtin_sh_run() {
   sh_banner();
   sh_prompt();
+  setenv("PATH", "/usr/bin:/bin:$PATH", 0);
 
   while (1) {
     SDL_Event ev;
