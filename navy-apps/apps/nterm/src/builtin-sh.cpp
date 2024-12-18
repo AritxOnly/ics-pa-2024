@@ -48,8 +48,15 @@ static void sh_handle_cmd(const char *cmd) {
       break;
     }
   }
-
-  if (i == NR_CMD) { printf("Unknown command '%s'\n", cmd); }
+  if (i == NR_CMD) {
+    FILE *fp = fopen(cmd, "r");
+    if (!fp) {
+      printf("Unknown command '%s'\n", cmd);
+    } else {
+      execve(cmd, NULL, NULL);
+      fclose(fp);
+    }
+  }
 }
 
 void builtin_sh_run() {
