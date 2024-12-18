@@ -26,6 +26,8 @@ struct timeval {
 
 void naive_uload(PCB *pcb, const char *filename);
 
+static char cur_bin[64];
+
 void do_syscall(Context *c) {
   uintptr_t a[4];
   a[0] = c->GPR1;
@@ -39,7 +41,15 @@ void do_syscall(Context *c) {
 
   switch (a[0]) {
     case SYS_yield: yield(); c->GPRx = 0; break;
-    case SYS_exit: halt(a[1]); break;
+    case SYS_exit: 
+      // halt(a[1]); 
+      if (strcmp(ENTRY_BIN, cur_bin) == 0) {
+        halt(0);
+      } else {
+        naive_uload(NULL, ENTRY_BIN);
+      }
+      c->GPRx = 0;
+      break;
     case SYS_open: c->GPRx = fs_open((char *)a[1], a[2], a[3]); break;
     case SYS_read: c->GPRx = fs_read(a[1], (void *)a[2], a[3]); break;
     case SYS_write: c->GPRx = fs_write(a[1], (void *)a[2], a[3]); break;
@@ -58,8 +68,10 @@ void do_syscall(Context *c) {
       break;
     case SYS_brk: c->GPRx = 0; break;
     case SYS_execve:
-      // #warning TODO
+      strncpy(cur_bin, (const char *)a[1], strlen((const char *)a[1]) + 1);
       naive_uload(NULL, (const char *)a[1]);
+      c->GPRx = 0;
+      // #warning TODO
       break;
     default: panic("Unhandled syscall ID = %d", a[0]);
   }

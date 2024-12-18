@@ -12,6 +12,8 @@
 // #define DETAILED_STRACE
 #endif
 
+#define ENTRY_BIN "/bin/menu"
+
 #include <am.h>
 #include <klib.h>
 #include <klib-macros.h>
