@@ -38,9 +38,12 @@ static struct {
 
 #define NR_CMD 1
 
+// #error cmd's "\n" should be handled
 static void sh_handle_cmd(const char *cmd) {
   char *first = strtok((char *)cmd, " ");
   char *args = (char *)cmd + strlen(cmd) + 1;
+  printf("first : %s", first);
+  assert(0 && "for debug");  
   int i;
   for (i = 0; i < NR_CMD; i ++) {
     if (strcmp(cmd, cmd_table[i].name) == 0) {
@@ -49,11 +52,11 @@ static void sh_handle_cmd(const char *cmd) {
     }
   }
   if (i == NR_CMD) {
-    FILE *fp = fopen(cmd, "r");
+    FILE *fp = fopen(first, "r");
     if (!fp) {
       printf("Unknown command '%s'\n", cmd);
     } else {
-      execve(cmd, NULL, NULL);
+      execve(first, NULL, NULL);
       fclose(fp);
     }
   }
