@@ -48,7 +48,6 @@ static struct {
 
 #define NR_CMD sizeof(cmd_table) / sizeof(cmd_table[0])
 
-// #error cmd's "\n" should be handled
 static void sh_handle_cmd(const char *cmd) {
   char buf[256];
   strncpy(buf, cmd, strlen(cmd) - 1); // 去掉末尾的\n
@@ -67,7 +66,6 @@ static void sh_handle_cmd(const char *cmd) {
     char *argv[64] = { first, token };
     int ptr = 2;
     while (token != NULL) {
-      printf("%s\n", token);
       token = strtok(NULL, " ");
       argv[ptr++] = token;
     }
