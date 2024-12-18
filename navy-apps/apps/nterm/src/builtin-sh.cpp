@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <SDL.h>
+#include <stdlib.h>
 
 char handle_key(SDL_Event *ev);
 
@@ -28,15 +29,24 @@ static int cmd_echo(char *msg) {
   return 0;
 }
 
+static int cmd_exit(char *args) {
+  char *first = strtok(args, " ");
+  int arg = 0;
+  sscanf(args, "%d", &arg);
+  exit(arg);
+  return 0;
+}
+
 static struct {
   const char *name;
   const char *description;
   int (*handler) (char *);
 } cmd_table [] = {
-  {"echo", "", cmd_echo},
+  {"echo", "Echo back the input", cmd_echo},
+  {"exit", "Exit nterm", cmd_exit},
 };
 
-#define NR_CMD 1
+#define NR_CMD sizeof(cmd_table) / sizeof(cmd_table[0])
 
 // #error cmd's "\n" should be handled
 static void sh_handle_cmd(const char *cmd) {
