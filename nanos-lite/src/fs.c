@@ -65,7 +65,7 @@ int fs_open(const char *pathname, int flags, int mode) {
 
   Finfo *f = &file_table[fd];
   if (f->opened) {
-    // panic("fd %d is opened", fd);
+    panic("fd %d is opened", fd);
   }
 
   if (!f->read) {
@@ -184,6 +184,10 @@ off_t fs_lseek(int fd, off_t offset, int whence) {
 }
 
 int fs_close(int fd) {
+  if (fd < 0 || fd >= NR_FILES) {
+    return 0; // ？
+  }
+
   Finfo *f = &file_table[fd];
   f->opened = false;
 

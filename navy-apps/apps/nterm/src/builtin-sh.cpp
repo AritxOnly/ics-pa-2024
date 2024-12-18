@@ -55,10 +55,11 @@ static void sh_handle_cmd(const char *cmd) {
   if (i == NR_CMD) {
     FILE *fp = fopen(buf, "r");
     if (!fp) {
+      fclose(fp);
       printf("Unknown command '%s'\n", buf);
     } else {
-      execve(buf, NULL, NULL);
       fclose(fp);
+      execve(buf, NULL, NULL);
     }
   }
 }

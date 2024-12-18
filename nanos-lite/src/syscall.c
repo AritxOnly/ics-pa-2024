@@ -43,6 +43,7 @@ void do_syscall(Context *c) {
     case SYS_yield: yield(); c->GPRx = 0; break;
     case SYS_exit: 
       // halt(a[1]); 
+      Log("ENTRY: %s\ncur: %s\n", ENTRY_BIN, cur_bin);
       if (strcmp(ENTRY_BIN, cur_bin) == 0) {
         halt(0);
       } else {
