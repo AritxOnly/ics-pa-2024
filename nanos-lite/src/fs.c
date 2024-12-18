@@ -59,12 +59,13 @@ int fs_open(const char *pathname, int flags, int mode) {
   }
 
   if (fd == -1) {
-    panic("File %s not found", pathname);
+    // panic("File %s not found", pathname);
+    return fd;
   }
 
   Finfo *f = &file_table[fd];
   if (f->opened) {
-    panic("fd %d is opened", fd);
+    // panic("fd %d is opened", fd);
   }
 
   if (!f->read) {
