@@ -13,7 +13,7 @@ typedef struct {
   size_t open_offset;
   ReadFn read;
   WriteFn write;
-  bool opened;
+  // bool opened;
 } Finfo;
 
 enum {FD_STDIN, FD_STDOUT, FD_STDERR, FD_EVENTS, FD_FBINFO, FD_FB};
@@ -64,9 +64,9 @@ int fs_open(const char *pathname, int flags, int mode) {
   }
 
   Finfo *f = &file_table[fd];
-  if (f->opened) {
-    panic("fd %d is opened", fd);
-  }
+  // if (f->opened) {
+  //   panic("fd %d is opened", fd);
+  // }
 
   if (!f->read) {
     f->read = ramdisk_read;
@@ -75,7 +75,7 @@ int fs_open(const char *pathname, int flags, int mode) {
     f->write = ramdisk_write;
   }
 
-  f->opened = true;
+  // f->opened = true;
   f->open_offset = 0;
 
 #if defined (ENABLE_STRACE)
@@ -189,7 +189,8 @@ int fs_close(int fd) {
   }
 
   Finfo *f = &file_table[fd];
-  f->opened = false;
+  f->open_offset = 0;
+  // f->opened = false;
 
 #if defined (ENABLE_STRACE)
   Log("Strace close file %d(name: %s)", fd, f->name);
