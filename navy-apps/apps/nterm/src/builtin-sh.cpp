@@ -42,6 +42,7 @@ static struct {
 static void sh_handle_cmd(const char *cmd) {
   char buf[256];
   strncpy(buf, cmd, strlen(cmd) - 1); // 去掉末尾的\n
+  buf[strlen(cmd) - 1] = '\0';
   char *first = strtok((char *)buf, " ");
   char *args = (char *)buf + strlen(buf) + 1;
   int i;
