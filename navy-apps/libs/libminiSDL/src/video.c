@@ -133,9 +133,9 @@ void SDL_UpdateRect(SDL_Surface *s, int x, int y, int w, int h) {
       for (int i = 0; i < w; i++) {
         uint8_t color_idx = src_row[i];
         uint32_t color = (palette[color_idx].a << 24) | 
-                         (palette[color_idx].r << 16) | 
+                         (palette[color_idx].b << 16) | 
                          (palette[color_idx].g << 8) |
-                         (palette[color_idx].b);
+                         (palette[color_idx].r);
         dst_row[i] = color;
       }
     }
