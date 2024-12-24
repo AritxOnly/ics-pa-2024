@@ -75,6 +75,14 @@ void SDL_FillRect(SDL_Surface *dst, SDL_Rect *dstrect, uint32_t color) {
 
   int bbp = dst->format->BytesPerPixel;
 
+  uint8_t color_idx;
+  if (bits == 8) {
+    SDL_Color* palette = (*dst->format->palette).colors;
+    for (int i=0; i<(*dst->format->palette).ncolors; i++) {
+      if (palette[i].val == color) { color_idx = i; break; }
+    }
+  }
+
   for (int i = y; i < y + h; i++) {
     // 行索引
     uint8_t *row = dst->pixels + i * dst->pitch;
@@ -85,7 +93,7 @@ void SDL_FillRect(SDL_Surface *dst, SDL_Rect *dstrect, uint32_t color) {
         case 8:
           // SDL_Color *palette = dst->format->palette->colors;
           // *pixel = palette[(uint8_t)color].val;
-          *pixel = (uint8_t)color; 
+          *pixel = color_idx; 
           break;
         default:  fprintf(stderr, "Should not reach here"); break;
       }
@@ -124,10 +132,11 @@ void SDL_UpdateRect(SDL_Surface *s, int x, int y, int w, int h) {
       uint32_t *dst_row = tmp_pxl + j * w;
       for (int i = 0; i < w; i++) {
         uint8_t color_idx = src_row[i];
-        uint32_t color = palette[color_idx].val;
-        dst_row[i] = (color & 0xff00ff00) | 
-                    ((color & 0x000000ff) << 16) | 
-                    ((color & 0x00ff0000) >> 16);
+        uint32_t color = (palette[color_idx].a << 24) | 
+                         (palette[color_idx].r << 16) | 
+                         (palette[color_idx].g << 8) |
+                         (palette[color_idx].b);
+        dst_row[i] = color;
       }
     }
 
