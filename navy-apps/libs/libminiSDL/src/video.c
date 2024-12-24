@@ -5,131 +5,139 @@
 #include <string.h>
 #include <stdlib.h>
 
+uint32_t color_translator(SDL_Color *color) {
+  return (color->a << 24) | (color->r << 16) | (color->g << 8) | color->b;
+}
+
 void SDL_BlitSurface(SDL_Surface *src, SDL_Rect *srcrect, SDL_Surface *dst, SDL_Rect *dstrect) {
   assert(dst && src);
   assert(dst->format->BitsPerPixel == src->format->BitsPerPixel);
 
+  int w = 0, h = 0;
+  int src_x = 0, src_y = 0;
+  int dst_x = 0, dst_y = 0;
 
-  int bits = dst->format->BitsPerPixel;
-  if (bits != 32 && bits != 8) {
-    fprintf(stderr, "Unsupported BitsPerPixel: %d\n", bits);
-    return;
-  }
-
-  int sx = 0, sy = 0, sw = src->w, sh = src->h;
-  if (srcrect != NULL) {
-    sx = srcrect->x;
-    sy = srcrect->y;
-    sw = srcrect->w;
-    sh = srcrect->h;
-  }
-
-  int dx = 0, dy = 0;
-  if (dstrect != NULL) {
-    dx = dstrect->x;
-    dy = dstrect->y;
-  }
-
-  if (sx < 0 || sy < 0 || sw <= 0 || sh <= 0 ||
-    dx < 0 || dy < 0 ||
-    sx + sw > src->w || sy + sh > src->h ||
-    dx + sw > dst->w || dy + sh > dst->h) {
-    fprintf(stderr, "BlitSurface: Invalid rectangle dimensions.\n");
-    return;
-  }
-
-  for (int j = 0; j < sh; j++) {
-    int src_row = (sy + j) * src->w + sx;
-    int dst_row = (dy + j) * dst->w + dx;
-
-    if (bits == 32) {
-      uint32_t *src_pixels = (uint32_t *)src->pixels + src_row;
-      uint32_t *dst_pixels = (uint32_t *)dst->pixels + dst_row;
-      memcpy(dst_pixels, src_pixels, sw * sizeof(uint32_t));
-    } else if (bits == 8) {
-      uint8_t *src_pixels = (uint8_t *)src->pixels + src_row;
-      uint8_t *dst_pixels = (uint8_t *)dst->pixels + dst_row;
-      memcpy(dst_pixels, src_pixels, sw * sizeof(uint8_t));
-    }
-  }
-}
-
-void SDL_FillRect(SDL_Surface *dst, SDL_Rect *dstrect, uint32_t color) {
-  int w, h, x, y;
-  if (dstrect) {
-    x = dstrect->x;
-    y = dstrect->y;
-    w = dstrect->w;
-    h = dstrect->h;
+  if (srcrect) {
+    w = srcrect->w; h = srcrect->h;
+    src_x = srcrect->x; src_y = srcrect->y;
   } else {
-    x = 0;
-    y = 0;
-    w = dst->w;
-    h = dst->h;
-  }
-  int bits = dst->format->BitsPerPixel;
-  if (bits != 32 && bits != 8) {
-    fprintf(stderr, "Unsupported BitsPerPixel: %d\n", bits);
-    return;
+    w = src->w; h = src->h;
   }
 
-  int bbp = dst->format->BytesPerPixel;
+  if (dstrect) {
+    dst_x = dstrect->x; dst_y = dstrect->y;
+  }
 
-  for (int i = y; i < y + h; i++) {
-    // 行索引
-    uint8_t *row = dst->pixels + i * dst->pitch;
-    for (int j = x; j < x + w; j++) {
-      uint8_t *pixel = row + bbp * j;
-      switch (bits) {
-        case 32: *(uint32_t *)pixel = color; break;
-        case 8:
-          // SDL_Color *palette = dst->format->palette->colors;
-          // *pixel = palette[(uint8_t)color].val;
-          *pixel = (uint8_t)color; 
-          break;
-        default:  fprintf(stderr, "Should not reach here"); break;
+  switch (src->format->BytesPerPixel) {
+    case 4: {
+      uint32_t *tmp_src = (uint32_t *)src->pixels;
+      uint32_t *tmp_dst = (uint32_t *)dst->pixels;
+      for (int i = 0; i < h; i++) {
+        for (int j = 0; j < w; j++) {
+          tmp_dst[(dst_y + i) * dst->w + dst_x + j] = tmp_src[(src_y + i) * src->w + src_x + j];
+        }
       }
+      break;
     }
+
+    case 1: {
+      uint8_t *tmp_src = (uint8_t *)src->pixels;
+      uint8_t *tmp_dst = (uint8_t *)dst->pixels;
+      for (int i = 0; i < h; i++) {
+        for (int j = 0; j < w; j++) {
+          tmp_dst[(dst_y + i) * dst->w + dst_x + j] = tmp_src[(src_y + i) * src->w + src_x + j];
+        }
+      }
+      break;
+    }
+
+    default:
+      assert(0);
+      break;
   }
 }
+
 
 void SDL_UpdateRect(SDL_Surface *s, int x, int y, int w, int h) {
-  if (w == 0 || h == 0) {
-    // 默认为更新整个屏幕
-    x = 0;
-    y = 0;
+  if (w == 0 && h == 0) { 
     w = s->w;
     h = s->h;
-  }
+  }  
 
-  int bits = s->format->BitsPerPixel;
-  if (bits != 32 && bits != 8) {
-    fprintf(stderr, "Unsupported BitsPerPixel: %d\n", bits);
-    return;
-  }
+  switch (s->format->BytesPerPixel) {
+    case 4:
+      NDL_DrawRect((uint32_t *)s->pixels, x, y, w, h);
+      break;
 
-  if (bits == 32) {
-    uint32_t *pixels = s->pixels + y * s->w + x;
-    NDL_DrawRect(pixels, x, y, w, h);
-  } else {
-    uint32_t *tmp_pxl = malloc(w * h * sizeof(uint32_t));
-    if (tmp_pxl == NULL) {
-      fprintf(stderr, "Failed to allocate temp pixels!\n");
-      return;
+    case 1: {
+      uint32_t *pixels = malloc(w * h * sizeof(uint32_t));
+      uint8_t *src = (uint8_t *)s->pixels;
+      for (int i = 0; i < h; i++) {
+        for (int j = 0; j < w; j++) {
+          int src_index = (y + i) * s->w + (x + j);
+          int dest_index = i * w + j;
+          pixels[dest_index] = color_translator(&s->format->palette->colors[src[src_index]]);
+        }
+      }
+      NDL_DrawRect(pixels, x, y, w, h);
+      free(pixels);
+      break;
     }
 
-    SDL_Color *palette = s->format->palette->colors;
-    for (int j = 0; j < h; j++) {
-      uint8_t *src_row = (uint8_t *)s->pixels + (y + j) * s->w + x;
-      uint32_t *dst_row = tmp_pxl + j * w;
-      for (int i = 0; i < w; i++) {
-        uint8_t color_idx = src_row[i];
-        dst_row[i] = palette[color_idx].val;
+    default:
+      assert(0);
+      break;
+  }
+}
+
+
+void SDL_FillRect(SDL_Surface *dst, SDL_Rect *dstrect, uint32_t color) {
+  int x, y, w, h;
+  if (dstrect) {
+    x = dstrect->x; y = dstrect->y;
+    w = dstrect->w; h = dstrect->h;
+  } else {
+    x = y = 0;
+    w = dst->w; h = dst->h;
+  }
+
+  if (dst->format->palette == NULL) {
+    switch (dst->format->BytesPerPixel) {
+      case 4: {
+        uint32_t *pixels = (uint32_t *)(dst->pixels);
+        for (int i = 0; i < h; i++) {
+          for (int j = 0; j < w; j++) {
+            pixels[(y + i) * dst->w + x + j] = color;
+          }
+        }
+        break;
+      }
+
+      case 1: {
+        uint8_t *pixels = (uint8_t *)(dst->pixels);
+        for (int i = 0; i < h; i++) {
+          for (int j = 0; j < w; j++) {
+            pixels[(y + i) * dst->w + x + j] = (uint8_t)color;
+          }
+        }
+        break;
+      }
+
+      default:
+        assert(0);
+        break;
+    }
+  } else {
+    uint32_t *pixels = malloc(w * h * sizeof(uint32_t));
+    SDL_Color fill_color = { .val = color };
+    uint32_t fill_color_32 = color_translator(&fill_color);
+    for (int i = 0; i < h; i++) {
+      for (int j = 0; j < w; j++) {
+        pixels[i * w + j] = fill_color_32;
       }
     }
-
-    NDL_DrawRect(tmp_pxl, x, y, w, h);
-    free(tmp_pxl);
+    NDL_DrawRect(pixels, x, y, w, h);
+    free(pixels);
   }
 }
 
