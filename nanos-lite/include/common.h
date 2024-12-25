@@ -12,7 +12,7 @@
 // #define DETAILED_STRACE
 #endif
 
-#define ENTRY_BIN "/bin/pal"
+#define ENTRY_BIN "/bin/nterm"
 
 #include <am.h>
 #include <klib.h>
