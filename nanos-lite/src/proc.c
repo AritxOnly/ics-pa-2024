@@ -31,6 +31,8 @@ void context_kload(PCB *pcb, void (*entry)(void *), void *arg) {
   // 调用 kcontext() 在这片栈区里创建上下文
   Context *context = kcontext(kstack, entry, arg);
 
+  Log("pcb addr = %p, cp = %p", pcb, pcb->cp);
+
   // 记录到 pcb->cp 里
   pcb->cp = context;
 }
@@ -57,7 +59,7 @@ Context* schedule(Context *prev) {
   do {
     current_proc = (current_proc + 1) % MAX_NR_PROC;
     current = &pcb[current_proc];   // 更新全局指针
-    Log("current_proc = %d, current = %p, current->cp = %p\n", current_proc, current, current->cp);
+    Log("current_proc = %d, current = %p, current->cp = %p", current_proc, current, current->cp);
   } while (!current->cp);
 
   // 返回下一个进程的cp，进入新的上下文
