@@ -25,7 +25,7 @@ void context_kload(PCB *pcb, void (*entry)(void *), void *arg) {
   // 通过 pcb->stack 来提供栈区域
   Area kstack = {
     .start = pcb->stack,
-    .end   = pcb->stack + STACK_SIZE,
+    .end   = pcb + 1,
   };
 
   // 调用 kcontext() 在这片栈区里创建上下文
