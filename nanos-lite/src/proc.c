@@ -22,6 +22,8 @@ void hello_fun(void *arg) {
 void naive_uload(PCB *, const char *);
 
 void context_kload(PCB *pcb, void (*entry)(void *), void *arg) {
+  Log("pcb = %p", pcb);
+
   // 通过 pcb->stack 来提供栈区域
   Area kstack = {
     .start = pcb->stack,
