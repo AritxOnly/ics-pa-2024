@@ -21,7 +21,7 @@ void hello_fun(void *arg) {
 
 void naive_uload(PCB *, const char *);
 
-Context *context_kload(PCB *pcb, void (*entry)(void *), void *arg) {
+void context_kload(PCB *pcb, void (*entry)(void *), void *arg) {
   // 通过 pcb->stack 来提供栈区域
   Area kstack = {
     .start = pcb->stack,
@@ -29,11 +29,10 @@ Context *context_kload(PCB *pcb, void (*entry)(void *), void *arg) {
   };
 
   // 调用 kcontext() 在这片栈区里创建上下文
-  Context *ctx = kcontext(kstack, entry, arg);
+  Context *context = kcontext(kstack, entry, arg);
 
   // 记录到 pcb->cp 里
-  pcb->cp = ctx;
-  return ctx;
+  pcb->cp = context;
 }
 
 void init_proc() {
@@ -48,6 +47,7 @@ void init_proc() {
 }
 
 static int current_proc = 0;
+
 Context* schedule(Context *prev) {
   if (prev) {
     pcb[current_proc].cp = prev;  // 保存现场到该PCB
@@ -57,7 +57,7 @@ Context* schedule(Context *prev) {
   do {
     current_proc = (current_proc + 1) % MAX_NR_PROC;
     current = &pcb[current_proc];   // 更新全局指针
-  } while (!current);
+  } while (!current->cp);
 
   // 返回下一个进程的cp，进入新的上下文
   return current->cp;
