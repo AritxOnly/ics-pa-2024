@@ -57,6 +57,7 @@ Context* schedule(Context *prev) {
   do {
     current_proc = (current_proc + 1) % MAX_NR_PROC;
     current = &pcb[current_proc];   // 更新全局指针
+    Log("current_proc = %d, current = %p, current->cp = %p\n", current_proc, current, current->cp);
   } while (!current->cp);
 
   // 返回下一个进程的cp，进入新的上下文
