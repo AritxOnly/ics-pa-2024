@@ -20,18 +20,18 @@ void hello_fun(void *arg) {
 }
 
 void naive_uload(PCB *, const char *);
-
+void context_uload(PCB *pcb, const char *pathname);
 void context_kload(PCB *pcb, void (*entry)(void *), void *arg);
 
 void init_proc() {
-  // context_kload(&pcb[0], hello_fun, (void *)0x1919810);
-  // context_kload(&pcb[1], hello_fun, (void *)0x114514);
+  context_kload(&pcb[0], hello_fun, (void *)0x114514);
+  context_uload(&pcb[1], "/bin/pal");
   switch_boot_pcb();
 
   Log("Initializing processes...");
 
   // load program here
-  naive_uload(NULL, ENTRY_BIN);
+  // naive_uload(NULL, ENTRY_BIN);
 }
 
 static int current_proc = -1;

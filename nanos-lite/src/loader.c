@@ -114,3 +114,22 @@ void context_kload(PCB *pcb, void (*entry)(void *), void *arg) {
   // 记录到 pcb->cp 里
   pcb->cp = context;
 }
+
+void context_uload(PCB *pcb, const char *filename) {
+  Area kstack = {
+    .start = pcb->stack,
+    .end   = pcb->stack + STACK_SIZE,
+  };
+
+  uintptr_t entry = loader(pcb, filename);
+
+  if (!entry) {
+    Log("Loaded entry is NULL, doing nothing...");
+    return;
+  }
+
+  Context *context = ucontext(NULL, kstack, (void *)entry);
+
+  pcb->cp = context;
+  pcb->cp->GPRx = (uintptr_t)(heap.end);
+}
