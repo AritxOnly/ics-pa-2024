@@ -48,10 +48,10 @@ void init_proc() {
   // naive_uload(NULL, ENTRY_BIN);
 }
 
-static int current_proc = 0;
+static int current_proc = -1;
 
 Context* schedule(Context *prev) {
-  if (prev) {
+  if (prev && current_proc != -1) {
     pcb[current_proc].cp = prev;  // 保存现场到该PCB
   }
 
