@@ -31,15 +31,13 @@ void context_kload(PCB *pcb, void (*entry)(void *), void *arg) {
   // 调用 kcontext() 在这片栈区里创建上下文
   Context *context = kcontext(kstack, entry, arg);
 
-  Log("pcb addr = %p, cp = %p", pcb, pcb->cp);
-
   // 记录到 pcb->cp 里
   pcb->cp = context;
 }
 
 void init_proc() {
-  context_kload(&pcb[0], hello_fun, NULL);
-  context_kload(&pcb[1], hello_fun, NULL);
+  context_kload(&pcb[0], hello_fun, (void *)0x1919810);
+  context_kload(&pcb[1], hello_fun, (void *)0x114514);
   switch_boot_pcb();
 
   Log("Initializing processes...");
@@ -48,7 +46,7 @@ void init_proc() {
   // naive_uload(NULL, ENTRY_BIN);
 }
 
-static int current_proc = 3;
+static int current_proc = 0;
 
 Context* schedule(Context *prev) {
   if (prev) {
