@@ -47,11 +47,15 @@ bool cte_init(Context*(*handler)(Event, Context*)) {
 Context *kcontext(Area kstack, void (*entry)(void *), void *arg) {
   Context *context = (Context *)(kstack.end - sizeof(Context));
 
-  context->gpr[2] = (uintptr_t)context;
-  context->mepc = (uintptr_t)entry;
-  context->mstatus = 0x1800;
+  memset(context, 0, sizeof(Context));
 
-  // TODO:
+  uintptr_t sp = (uintptr_t)kstack.end & ~0xf;  // 16字节对齐，栈顶
+
+  context->gpr[2]   = sp;
+  context->gpr[10]  = (uintptr_t)arg;
+  context->mepc     = (uintptr_t)entry;
+  context->mstatus  = 0x1800;
+  context->pdir     = NULL;
 
   return context;
 }
