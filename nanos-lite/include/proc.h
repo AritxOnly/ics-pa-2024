@@ -18,4 +18,6 @@ typedef union {
 
 extern PCB *current;
 
+extern Context *kcontext(Area kstack, void (*entry)(void *), void *arg);
+
 #endif

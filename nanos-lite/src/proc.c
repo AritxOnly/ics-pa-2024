@@ -21,6 +21,21 @@ void hello_fun(void *arg) {
 
 void naive_uload(PCB *, const char *);
 
+Context *context_kload(PCB *pcb, void (*entry)(void *), void *arg) {
+  // 通过 pcb->stack 来提供栈区域
+  Area kstack = {
+    .start = pcb->stack,
+    .end   = pcb->stack + STACK_SIZE,
+  };
+
+  // 调用 kcontext() 在这片栈区里创建上下文
+  Context *ctx = kcontext(kstack, entry, arg);
+
+  // 记录到 pcb->cp 里
+  pcb->cp = ctx;
+  return ctx;
+}
+
 void init_proc() {
   switch_boot_pcb();
 
