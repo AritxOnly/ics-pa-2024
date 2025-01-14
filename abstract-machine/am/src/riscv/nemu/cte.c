@@ -52,10 +52,13 @@ Context *kcontext(Area kstack, void (*entry)(void *), void *arg) {
   uintptr_t sp = (uintptr_t)kstack.end & ~0xf;  // 16字节对齐，栈顶
 
   context->gpr[2]   = sp;
-  context->gpr[10]  = (uintptr_t)arg;
   context->mepc     = (uintptr_t)entry;
   context->mstatus  = 0x1800;
   context->pdir     = NULL;
+  
+  for (int i = 0; i < sizeof(arg) / sizeof(size_t); i++) {
+    context->gpr[10 + i] = ((size_t *)&arg)[i];
+  }
 
   return context;
 }
