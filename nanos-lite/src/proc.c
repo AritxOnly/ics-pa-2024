@@ -44,7 +44,7 @@ void init_proc() {
   Log("Initializing processes...");
 
   // load program here
-  // naive_uload(NULL, ENTRY_BIN);
+  naive_uload(NULL, ENTRY_BIN);
 }
 
 static int current_proc = 0;
