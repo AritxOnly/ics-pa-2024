@@ -130,6 +130,8 @@ void context_uload(PCB *pcb, const char *filename, char *const argv[], char *con
     return;
   }
 
+  Log("Entry = %p", entry);
+
   Context *context = ucontext(NULL, kstack, (void *)entry);
 
   uintptr_t sp = (uintptr_t)kstack.end;
