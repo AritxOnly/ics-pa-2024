@@ -42,13 +42,13 @@ void do_syscall(Context *c) {
   switch (a[0]) {
     case SYS_yield: yield(); c->GPRx = 0; break;
     case SYS_exit: 
-      // if(strcmp("/bin/nterm", ENTRY_BIN) == 0 && strcmp("/bin/nterm", cur_bin) != 0) {
-      //   strncpy(cur_bin, "/bin/nterm", 11);
-      //   //naive_uload(NULL, "/bin/nterm");
-      //   context_uload(current, "/bin/nterm", (char *const[]){NULL}, (char *const[]){NULL});
-      //   switch_boot_pcb();
-      //   yield();
-      // }
+      if(strcmp("/bin/nterm", ENTRY_BIN) == 0 && strcmp("/bin/nterm", cur_bin) != 0) {
+        strncpy(cur_bin, "/bin/nterm", 11);
+        //naive_uload(NULL, "/bin/nterm");
+        context_uload(current, "/bin/nterm", (char *const[]){NULL}, (char *const[]){NULL});
+        switch_boot_pcb();
+        yield();
+      }
 
       // halt(a[1]);  
       c->GPRx = 0;
