@@ -116,6 +116,7 @@ void context_kload(PCB *pcb, void (*entry)(void *), void *arg) {
 }
 
 #define UNSPECIFIED_MEMORY 0
+#define MEMORY_SPACE sizeof(void *)
 
 void context_uload(PCB *pcb, const char *filename, char *const argv[], char *const envp[]) {
   Area kstack = {
@@ -129,8 +130,6 @@ void context_uload(PCB *pcb, const char *filename, char *const argv[], char *con
     Log("Loaded entry is NULL, doing nothing...");
     return;
   }
-
-  Log("Entry = %p", entry);
 
   Context *context = ucontext(NULL, kstack, (void *)entry);
 
@@ -171,22 +170,22 @@ void context_uload(PCB *pcb, const char *filename, char *const argv[], char *con
   typedef char ** space;
 
   sp -= UNSPECIFIED_MEMORY;
-  sp--;
+  sp -= MEMORY_SPACE;
 
   *(space)sp = NULL;
 
   for (int i = envc - 1; i >= 0; i--) {
-    sp--;
+    sp -= MEMORY_SPACE;
     *(space)sp = tmp_envp[i];
   }
-  sp--;
+  sp -= MEMORY_SPACE;
   *(space)sp = NULL;
 
   for (int i = argc - 1; i >= 0; i--) {
-    sp--;
+    sp -= MEMORY_SPACE;
     *(space)sp = tmp_argv[i];
   }
-  sp--;
+  sp -= MEMORY_SPACE;
   *(int *)sp = argc;
 
   Log("String pointers initialized, current sp = %p", sp);
