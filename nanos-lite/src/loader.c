@@ -133,7 +133,7 @@ void context_uload(PCB *pcb, const char *filename, char *const argv[], char *con
 
   Context *context = ucontext(NULL, kstack, (void *)entry);
 
-  uintptr_t sp = (uintptr_t)kstack.end;
+  uintptr_t sp = (uintptr_t)context;
   sp -= UNSPECIFIED_MEMORY;
 
   Log("Preparing user stack... sp = %p", sp);
@@ -192,4 +192,6 @@ void context_uload(PCB *pcb, const char *filename, char *const argv[], char *con
 
   pcb->cp = context;
   pcb->cp->GPRx = sp;
+
+  Log("mepc: %p", pcb->cp->mepc);
 }
