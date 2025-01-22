@@ -37,6 +37,8 @@ static inline const char* reg_name(int idx) {
 #define MSTATUS 0x300
 #define MCAUSE 0x342
 #define MTVEC 0x305
+#define MSCRATCH 0x340
+#define SATP 0x180
 
 static inline int check_csr_idx(int idx) {
   IFDEF(CONFIG_RT_CHECK, assert(idx >= 0 && idx < 4096));
@@ -49,6 +51,8 @@ static inline int csr_hash(int idx) {
     case MSTATUS: return 1; break;
     case MCAUSE: return 2; break;
     case MTVEC: return 3; break;
+    case MSCRATCH: return 4; break;
+    case SATP: return 5; break;
     default: Assert(0, "Unimplemented CSRs");
   }
   return -1;
