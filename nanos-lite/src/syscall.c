@@ -70,8 +70,11 @@ void do_syscall(Context *c) {
     case SYS_brk: c->GPRx = 0; break;
     case SYS_execve:
       strncpy(cur_bin, (const char *)a[1], strlen((const char *)a[1]) + 1);
-      naive_uload(NULL, (const char *)a[1]);
-      c->GPRx = 0;
+      // naive_uload(NULL, (const char *)a[1]);
+      context_uload(current, cur_bin, (char *const *)a[2], (char *const *)a[3]);
+      // c->GPRx = 0;
+      switch_boot_pcb();
+      yield();
       // #warning TODO
       break;
     default: panic("Unhandled syscall ID = %d", a[0]);

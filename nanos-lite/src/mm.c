@@ -14,7 +14,7 @@ static void* pg_alloc(int n) {
 #endif
 
 void free_page(void *p) {
-  panic("not implement yet");
+  // panic("not implement yet");
 }
 
 /* The brk() system call handler. */

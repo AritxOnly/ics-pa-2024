@@ -20,6 +20,8 @@ extern PCB *current;
 
 extern Context *kcontext(Area kstack, void (*entry)(void *), void *arg);
 
+void switch_boot_pcb();
+
 void naive_uload(PCB *, const char *);
 void context_uload(PCB *pcb, const char *pathname, char *const argv[], char *const envp[]);
 void context_kload(PCB *pcb, void (*entry)(void *), void *arg);
