@@ -43,12 +43,12 @@ void do_syscall(Context *c) {
     case SYS_yield: yield(); c->GPRx = 0; break;
     case SYS_exit: 
       // halt(a[1]); 
-      Log("ENTRY: %s, cur: %s", ENTRY_BIN, cur_bin);
-      if (strcmp(ENTRY_BIN, cur_bin) == 0) {
-        halt(0);
-      } else {
-        naive_uload(NULL, ENTRY_BIN);
-      }
+      // Log("ENTRY: %s, cur: %s", ENTRY_BIN, cur_bin);
+      // if (strcmp(ENTRY_BIN, cur_bin) == 0) {
+      //   halt(0);
+      // } else {
+      //   naive_uload(NULL, ENTRY_BIN);
+      // }
       c->GPRx = 0;
       break;
     case SYS_open: c->GPRx = fs_open((char *)a[1], a[2], a[3]); break;
