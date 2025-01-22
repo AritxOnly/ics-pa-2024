@@ -71,6 +71,7 @@ void do_syscall(Context *c) {
       break;
     case SYS_brk: c->GPRx = 0; break;
     case SYS_execve:
+      Log("I reached here with %s, argv[0] %s, argv[1] %s", (char *)a[1], ((char **)a[2])[0], ((char **)a[2])[1]);
       strncpy(cur_bin, (const char *)a[1], strlen((const char *)a[1]) + 1);
       // naive_uload(NULL, (const char *)a[1]);
       context_uload(current, cur_bin, (char *const *)a[2], (char *const *)a[3]);

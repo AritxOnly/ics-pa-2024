@@ -42,7 +42,7 @@ Context* schedule(Context *prev) {
   do {
     current_proc = (current_proc + 1) % MAX_NR_PROC;
     current = &pcb[current_proc];   // 更新全局指针
-    Log("current_proc = %d, current = %p, current->cp = %p", current_proc, current, current->cp);
+    // Log("current_proc = %d, current = %p, current->cp = %p", current_proc, current, current->cp);
   } while (!current->cp);
 
   Log("mepc: %p", current->cp->mepc);

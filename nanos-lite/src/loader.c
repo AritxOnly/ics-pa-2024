@@ -136,7 +136,7 @@ void context_uload(PCB *pcb, const char *filename, char *const argv[], char *con
   uintptr_t sp = (uintptr_t)new_page(8);
   sp -= UNSPECIFIED_MEMORY;
 
-  Log("Preparing user stack... sp = %p", sp);
+  // Log("Preparing user stack... sp = %p", sp);
 
   int argc, envc;
 
@@ -146,7 +146,7 @@ void context_uload(PCB *pcb, const char *filename, char *const argv[], char *con
   for (argc = 0; argv && argv[argc] != NULL; argc++) ;
   for (envc = 0; envp && envp[envc] != NULL; envc++) ;
 
-  Log("Completed count args, argc = %d, envc = %d", argc, envc);
+  // Log("Completed count args, argc = %d, envc = %d", argc, envc);
 
   char **tmp_argv = malloc(argc * sizeof(char *));
   char **tmp_envp = malloc(envc * sizeof(char *));
@@ -165,7 +165,7 @@ void context_uload(PCB *pcb, const char *filename, char *const argv[], char *con
     tmp_envp[i] = (char *)sp;
   }
 
-  Log("Args are copied to string area, current sp = %p", sp);
+  // Log("Args are copied to string area, current sp = %p", sp);
 
   typedef char ** space;
 
@@ -188,7 +188,7 @@ void context_uload(PCB *pcb, const char *filename, char *const argv[], char *con
   sp -= MEMORY_SPACE;
   *(int *)sp = argc;
 
-  Log("String pointers initialized, current sp = %p", sp);
+  // Log("String pointers initialized, current sp = %p", sp);
 
   pcb->cp = context;
   pcb->cp->GPRx = sp;
