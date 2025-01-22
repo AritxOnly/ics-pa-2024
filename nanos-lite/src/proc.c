@@ -20,9 +20,9 @@ void hello_fun(void *arg) {
 }
 
 void init_proc() {
-  char *const argv[] = {"/bin/menu", NULL};
+  char *const argv[] = {"/bin/exec-test", NULL};
   context_kload(&pcb[0], hello_fun, (void *)0x114514);
-  context_uload(&pcb[1], "/bin/menu", argv, (char *const *){NULL});
+  context_uload(&pcb[1], "/bin/exec-test", argv, (char *const *){NULL});
   switch_boot_pcb();
 
   Log("Initializing processes...");
