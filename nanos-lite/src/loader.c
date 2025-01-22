@@ -136,7 +136,7 @@ void context_uload(PCB *pcb, const char *filename, char *const argv[], char *con
   uintptr_t sp = (uintptr_t)new_page(8);
   sp -= UNSPECIFIED_MEMORY;
 
-  // Log("Preparing user stack... sp = %p", sp);
+  Log("Current user stack: sp = %p", sp);
 
   int argc, envc;
 
