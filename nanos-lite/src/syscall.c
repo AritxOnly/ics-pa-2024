@@ -51,7 +51,7 @@ void do_syscall(Context *c) {
       // }
 
       // halt(a[1]);  
-      // c->GPRx = 0;
+      c->GPRx = 0;
       break;
     case SYS_open: c->GPRx = fs_open((char *)a[1], a[2], a[3]); break;
     case SYS_read: c->GPRx = fs_read(a[1], (void *)a[2], a[3]); break;
@@ -79,7 +79,6 @@ void do_syscall(Context *c) {
       switch_boot_pcb();
       yield();
       // #warning TODO
-      c->GPRx = 0;
       break;
     default: panic("Unhandled syscall ID = %d", a[0]);
   }
