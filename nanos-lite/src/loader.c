@@ -142,8 +142,8 @@ void context_uload(PCB *pcb, const char *filename, char *const argv[], char *con
   if (!argv) { argc = 0; }
   if (!envp) { envc = 0; }
 
-  for (argc = 0; !argv && argv[argc] != NULL; argc++) ;
-  for (envc = 0; !envp && envp[envc] != NULL; envc++) ;
+  for (argc = 0; argv && argv[argc] != NULL; argc++) ;
+  for (envc = 0; envp && envp[envc] != NULL; envc++) ;
 
   Log("Completed count args, argc = %d, envc = %d", argc, envc);
 
