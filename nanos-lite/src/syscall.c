@@ -79,6 +79,7 @@ void do_syscall(Context *c) {
       switch_boot_pcb();
       yield();
       // #warning TODO
+      c->GPRx = 0;
       break;
     default: panic("Unhandled syscall ID = %d", a[0]);
   }
