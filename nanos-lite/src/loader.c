@@ -133,7 +133,7 @@ void context_uload(PCB *pcb, const char *filename, char *const argv[], char *con
 
   Context *context = ucontext(NULL, kstack, (void *)entry);
 
-  uintptr_t sp = (uintptr_t)context;
+  uintptr_t sp = (uintptr_t)new_page(8);
   sp -= UNSPECIFIED_MEMORY;
 
   Log("Preparing user stack... sp = %p", sp);
