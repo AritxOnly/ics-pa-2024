@@ -55,10 +55,7 @@ Context *kcontext(Area kstack, void (*entry)(void *), void *arg) {
   context->mepc     = (uintptr_t)entry;
   context->mstatus  = 0x1800;
   context->pdir     = NULL;
-  
-  for (int i = 0; i < sizeof(arg) / sizeof(size_t); i++) {
-    context->gpr[10 + i] = ((size_t *)&arg)[i];
-  }
+  context->gpr[10]  = (uintptr_t)arg;
 
   return context;
 }

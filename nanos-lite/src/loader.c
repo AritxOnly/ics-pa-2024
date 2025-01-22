@@ -115,7 +115,9 @@ void context_kload(PCB *pcb, void (*entry)(void *), void *arg) {
   pcb->cp = context;
 }
 
-void context_uload(PCB *pcb, const char *filename) {
+#define UNSPECIFIED_MEMORY 0
+
+void context_uload(PCB *pcb, const char *filename, char *const argv[], char *const envp[]) {
   Area kstack = {
     .start = pcb->stack,
     .end   = pcb->stack + STACK_SIZE,
@@ -130,6 +132,55 @@ void context_uload(PCB *pcb, const char *filename) {
 
   Context *context = ucontext(NULL, kstack, (void *)entry);
 
+  uintptr_t sp = (uintptr_t)kstack.end;
+  sp -= UNSPECIFIED_MEMORY;
+
+  int argc, envc;
+
+  if (!argv) { argc = 0; }
+  if (!envp) { envc = 0; }
+
+  for (argc = 0; !argv && argv[argc] != NULL; argc++) ;
+  for (envc = 0; !envp && envp[envc] != NULL; envc++) ;
+
+  char **tmp_argv = malloc(argc * sizeof(char *));
+  char **tmp_envp = malloc(envc * sizeof(char *));
+
+  for (int i = 0; i < argc; i++) {
+    int len = strlen(argv[i]) + 1;
+    sp -= len;
+    strncpy((char *)sp, argv[i], len);
+    tmp_argv[i] = (char *)sp;
+  }
+
+  for (int i = 0; i < envc; i++) {
+    int len = strlen(envp[i]) + 1;
+    sp -= len;
+    strncpy((char *)sp, envp[i], len);
+    tmp_envp[i] = (char *)sp;
+  }
+
+  typedef char ** space;
+
+  sp -= UNSPECIFIED_MEMORY;
+  sp--;
+
+  *(space)sp = NULL;
+
+  for (int i = envc - 1; i >= 0; i--) {
+    sp--;
+    *(space)sp = tmp_envp[i];
+  }
+  sp--;
+  *(space)sp = NULL;
+
+  for (int i = argc - 1; i >= 0; i--) {
+    sp--;
+    *(space)sp = tmp_argv[i];
+  }
+  sp--;
+  *(int *)sp = argc;
+
   pcb->cp = context;
-  pcb->cp->GPRx = (uintptr_t)(heap.end);
+  pcb->cp->GPRx = sp;
 }
