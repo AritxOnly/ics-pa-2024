@@ -31,6 +31,8 @@ size_t get_ramdisk_size();
 # define Elf_Phdr Elf32_Phdr
 #endif
 
+#define PGMASK ~(PGSIZE - 1)
+
 static uintptr_t loader(PCB *pcb, const char *filename) {
   int fd = fs_open(filename, 0, 0);
 
@@ -65,23 +67,74 @@ static uintptr_t loader(PCB *pcb, const char *filename) {
   for (int i = 0; i < ehdr.e_phnum; i++) {
     Elf_Phdr *phdr = &phdrs[i];
     if (phdr->p_type == PT_LOAD) {
-      uint32_t vaddr = phdr->p_vaddr;
-      // uint32_t paddr = phdr->p_paddr;
-      uint32_t mem_size = phdr->p_memsz;
-      uint32_t file_size = phdr->p_filesz;
-      uint32_t offset = phdr->p_offset;
+      uint32_t vaddr      = phdr->p_vaddr;
+      uint32_t mem_size   = phdr->p_memsz;
+      uint32_t file_size  = phdr->p_filesz;
+      uint32_t offset     = phdr->p_offset;
 
       // fseek(fp, offset, SEEK_SET);
       fs_lseek(fd, offset, SEEK_SET);
+
+      // 对齐
+      uint32_t page_start = vaddr & PGMASK;
+      uint32_t page_end   = (vaddr + mem_size + PGSIZE - 1) & PGMASK;
+
+      uint32_t inpg_offset = vaddr & ~PGMASK;
+
+      uint32_t loaded = 0;
+      uint32_t seg_size = page_end - page_start;
+
+      while (loaded < seg_size) {
+        uint32_t page_vaddr = page_start + loaded;
+
+        // 分配一页物理内存
+        void *pa = new_page(1); // 每次分配一页(4096字节)
+        assert(pa);
+
+        // 将这页映射到用户进程地址空间中
+        map(&(pcb->as), (void *)page_vaddr, pa, 0b111);
+
+        uint32_t page_bytes = PGSIZE;  // 4KB
+        // 但最后一页可能只需要一部分
+        if (loaded + page_bytes > seg_size) {
+          page_bytes = seg_size - loaded;
+        }
+
+        memset(pa, 0, PGSIZE);
+
+        uint32_t page_file_start = loaded - (vaddr - page_start); 
+
+        uint32_t file_part = 0;
+        if (page_file_start < file_size) {
+          // 剩余可读 = file_size - page_file_start
+          file_part = file_size - page_file_start;
+          if (file_part > page_bytes) {
+            file_part = page_bytes;
+          }
+        }
+        
+        uint32_t page_inner_offset = 0; 
+        if (loaded == 0) {
+          page_inner_offset = inpg_offset;
+        }
+
+        if (file_part > 0) {
+          size_t nr = fs_read(fd, (char *)pa + page_inner_offset, file_part);
+          assert(nr == file_part);
+        }
+
+        loaded += page_bytes;
+      }
+
       // int ret = fread((void *)(uintptr_t)vaddr, 1, file_size, fp);
       // size_t ret = ramdisk_read((void *)(uintptr_t)vaddr, offset, file_size);
-      size_t ret = fs_read(fd, (void *)(uintptr_t)vaddr, file_size);
-      assert(ret == file_size);
+      // size_t ret = fs_read(fd, (void *)(uintptr_t)vaddr, file_size);
+      // assert(ret == file_size);
 
-      if (mem_size > file_size) {
-        memset((void *)(uintptr_t)(vaddr + file_size), 0, mem_size - file_size);
-        // 清零
-      }
+      // if (mem_size > file_size) {
+      //   memset((void *)(uintptr_t)(vaddr + file_size), 0, mem_size - file_size);
+      //   // 清零
+      // }
 
       Log("Loaded segment %d: vaddr = 0x%08x, memsz = 0x%08x, filesz = 0x%08x", 
           i, vaddr, mem_size, file_size);
@@ -119,6 +172,8 @@ void context_kload(PCB *pcb, void (*entry)(void *), void *arg) {
 #define MEMORY_SPACE sizeof(void *)
 
 void context_uload(PCB *pcb, const char *filename, char *const argv[], char *const envp[]) {
+  protect(&pcb->as);
+
   Area kstack = {
     .start = pcb->stack,
     .end   = pcb->stack + STACK_SIZE,
@@ -131,10 +186,16 @@ void context_uload(PCB *pcb, const char *filename, char *const argv[], char *con
     return;
   }
 
-  Context *context = ucontext(NULL, kstack, (void *)entry);
+  void *user_stack_va_base = (char *)pcb->as.area.end - STACK_SIZE;
+  int num_pages = STACK_SIZE / PGSIZE;  
+  for (int i = 0; i < num_pages; i++) {
+    void *page_pa = new_page(1);
+    void *page_va = (char *)user_stack_va_base + i * PGSIZE;
+    map(&pcb->as, page_va, page_pa, 0b111);
+  }
 
-  void *user_stack = new_page(STACK_SIZE / PGSIZE);
-  uintptr_t sp = (uintptr_t)(user_stack + PGSIZE - 1);
+  uintptr_t sp = (uintptr_t)user_stack_va_base + STACK_SIZE;
+
   sp -= UNSPECIFIED_MEMORY;
 
   Log("Current user stack: sp = %p", sp);
@@ -146,8 +207,6 @@ void context_uload(PCB *pcb, const char *filename, char *const argv[], char *con
 
   for (argc = 0; argv && argv[argc] != NULL; argc++) ;
   for (envc = 0; envp && envp[envc] != NULL; envc++) ;
-
-  // Log("Completed count args, argc = %d, envc = %d", argc, envc);
 
   char **tmp_argv = malloc(argc * sizeof(char *));
   char **tmp_envp = malloc(envc * sizeof(char *));
@@ -165,8 +224,6 @@ void context_uload(PCB *pcb, const char *filename, char *const argv[], char *con
     strncpy((char *)sp, envp[i], len);
     tmp_envp[i] = (char *)sp;
   }
-
-  // Log("Args are copied to string area, current sp = %p", sp);
 
   typedef char ** space;
 
@@ -189,7 +246,7 @@ void context_uload(PCB *pcb, const char *filename, char *const argv[], char *con
   sp -= MEMORY_SPACE;
   *(int *)sp = argc;
 
-  // Log("String pointers initialized, current sp = %p", sp);
+  Context *context = ucontext(&pcb->as, kstack, (void *)entry);
 
   pcb->cp = context;
   pcb->cp->GPRx = sp;
