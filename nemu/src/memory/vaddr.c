@@ -41,7 +41,7 @@ word_t vaddr_read(vaddr_t addr, int len) {
 }
 
 void vaddr_write(vaddr_t addr, int len, word_t data) {
-    paddr_t paddr = addr;
+  paddr_t paddr = addr;
   int check = isa_mmu_check(addr, len, 0);
   // Log("check = %d", check);
   assert(check != MMU_FAIL);
