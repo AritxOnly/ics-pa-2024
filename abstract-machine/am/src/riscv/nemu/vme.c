@@ -136,7 +136,7 @@ Context *ucontext(AddrSpace *as, Area kstack, void *entry) {
 
   memset(context, 0, sizeof(Context));
 
-  printf("[ucontext: %d] as->ptr = %p\n", __LINE__, as->ptr);
+  // printf("[ucontext: %d] as->ptr = %p\n", __LINE__, as->ptr);
 
   context->mepc    = (uintptr_t)entry;
   context->mstatus = 0x1800;
