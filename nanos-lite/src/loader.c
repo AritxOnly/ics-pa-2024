@@ -94,6 +94,8 @@ static uintptr_t loader(PCB *pcb, const char *filename) {
         // 将这页映射到用户进程地址空间中
         map(&(pcb->as), (void *)page_vaddr, pa, 0b111);
 
+        Log("assigned %p to %p", page_vaddr, pa);
+
         uint32_t page_bytes = PGSIZE;  // 4KB
         // 但最后一页可能只需要一部分
         if (loaded + page_bytes > seg_size) {
