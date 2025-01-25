@@ -22,14 +22,14 @@
 int isa_mmu_check(vaddr_t vaddr, int len, int type) {
   if (vaddr >= 0x80000000) return MMU_DIRECT;
   uint32_t satp_val = csr(SATP);
-  uint32_t mode = satp_val << 31;
-  if (mode == 1) {
-    return MMU_TRANSLATE;
-  }
+  // uint32_t mode = satp_val & 0xf;
+  // if (mode == 1) {
+  //   return MMU_TRANSLATE;
+  // }
   if (satp_val == 0) {
     return MMU_DIRECT;
   }
-  return MMU_FAIL; 
+  return MMU_TRANSLATE; 
 }
 
 paddr_t isa_mmu_translate(vaddr_t vaddr, int len, int type) {
@@ -79,7 +79,7 @@ paddr_t isa_mmu_translate(vaddr_t vaddr, int len, int type) {
     paddr = (ppn1 << 2) | (vpn0) | voff;
   }
 
-  assert(paddr == vaddr);
+  // assert(paddr == vaddr);
   return paddr;
 }
 
