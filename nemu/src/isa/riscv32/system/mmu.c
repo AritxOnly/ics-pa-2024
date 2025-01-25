@@ -20,17 +20,17 @@
 #include <memory/host.h>
 
 int isa_mmu_check(vaddr_t vaddr, int len, int type) {
-  uint32_t satp_val = csr(SATP);
-  if (vaddr >= 0x80000000) {
-  Log("satp: 0x%x", satp_val); return MMU_DIRECT;}
-  // uint32_t mode = satp_val & 0xf;
-  // if (mode == 1) {
-  //   return MMU_TRANSLATE;
-  // }
+  if (vaddr >= 0x80000000) return MMU_DIRECT;
+  int satp_val = csr(SATP);
   if (satp_val == 0) {
     return MMU_DIRECT;
+  } else if (satp_val >> 31 == 0) {
+    Log("Reached here, satp: 0x%x", satp_val);
+    return MMU_TRANSLATE; 
   }
-  return MMU_TRANSLATE; 
+
+  Log("Failed, satp: 0x%x", satp_val);
+  return MMU_FAIL;
 }
 
 paddr_t isa_mmu_translate(vaddr_t vaddr, int len, int type) {
