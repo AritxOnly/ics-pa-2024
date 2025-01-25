@@ -26,23 +26,33 @@ void free_page(void *p) {
 
 /* The brk() system call handler. */
 int mm_brk(uintptr_t brk) {
-  intptr_t old_brk = current->max_brk;
+  // intptr_t old_brk = current->max_brk;
   
-  if (brk <= old_brk) {
-    return 0;
-  }
+  // if (brk <= old_brk) {
+  //   return 0;
+  // }
 
-  uintptr_t start = (old_brk + PGSIZE - 1) & ~(PGSIZE - 1);
-  uintptr_t end   = (brk     + PGSIZE - 1) & ~(PGSIZE - 1);
+  // uintptr_t start = (old_brk + PGSIZE - 1) & ~(PGSIZE - 1);
+  // uintptr_t end   = (brk     + PGSIZE - 1) & ~(PGSIZE - 1);
 
-  uintptr_t va = start;
-  for (; va < end; va += PGSIZE) {
-    void *pa = pg_alloc(PGSIZE);
-    map(&(current->as), (void *)va, pa, 0b111);
-  }
+  // uintptr_t va = start;
+  // for (; va < end; va += PGSIZE) {
+  //   void *pa = pg_alloc(PGSIZE);
+  //   map(&(current->as), (void *)va, pa, 0b111);
+  // }
 
-  if (brk > current->max_brk) {
-    current->max_brk = va;
+  // if (brk > current->max_brk) {
+  //   current->max_brk = va;
+  // }
+  uintptr_t curbrk = current->max_brk;
+  //printf("brk=%x, curbrk=%x\n",brk, curbrk);
+  if (brk > curbrk) {
+    while (brk > curbrk) {
+      map(&(current->as), (char*)curbrk, pg_alloc(PGSIZE), 0b111);
+      curbrk += PGSIZE;
+      //printf("brk=%x, curbrk=%x\n",brk, curbrk);
+    }
+    current->max_brk = curbrk;
   }
 
   return 0;
