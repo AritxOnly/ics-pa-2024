@@ -26,10 +26,10 @@ int isa_mmu_check(vaddr_t vaddr, int len, int type) {
   // if (mode == 1) {
   //   return MMU_TRANSLATE;
   // }
+  Log("satp: 0x%x", satp_val);
   if (satp_val == 0) {
     return MMU_DIRECT;
   }
-  Log("satp: 0x%x", satp_val);
   return MMU_TRANSLATE; 
 }
 
