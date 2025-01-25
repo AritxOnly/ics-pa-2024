@@ -31,53 +31,101 @@ int isa_mmu_check(vaddr_t vaddr, int len, int type) {
   return MMU_FAIL; 
 }
 
+// paddr_t isa_mmu_translate(vaddr_t vaddr, int len, int type) {
+//   // 拆分虚拟地址
+//   paddr_t vpn1 = vaddr & 0xffc00000;  // 高10位
+//   paddr_t vpn0 = vaddr & 0x003ff000;  // 中10位
+//   paddr_t voff = vaddr & 0x00000fff;  // 低12位 (页内偏移)
+
+//   // 从 satp 中获取根页表物理页号(PPN)
+//   paddr_t satp_val = csr(SATP);          // 读寄存器
+//   paddr_t satp_ppn = satp_val & 0x003fffff;
+
+//   // 计算一级页表项地址
+//   paddr_t pte_addr = satp_ppn * 4096 + ((vpn1 >> 22) * 4);
+
+//   // 4. 读取一级页表项 (PTE1)
+//   word_t pte = host_read(guest_to_host(pte_addr), 4);
+
+//   // 检查一级页表项有效位(V=1)；若无效则抛出异常
+//   if (!(pte & 1)) {
+//     panic("invalid PTE: vaddr=0x%x, pte_addr=0x%x, pte=0x%x\n",
+//           vaddr, pte_addr, pte);
+//   }
+
+//   paddr_t paddr;
+
+//   // 判断是否是叶子节点
+//   if ((pte & 0x2) == 0 && (pte & 0x4) == 0 && (pte & 0x8) == 0) {
+//     paddr_t pte0_addr = ((pte & 0xfffffc00) >> 10) * 4096
+//                       + ((vpn0 >> 12) * 4);
+
+//     // 读取二级页表项 (PTE2)
+//     pte = host_read(guest_to_host(pte0_addr), 4);
+//     if (!(pte & 1)) {
+//       panic("invalid PTE (2nd-level): vaddr=0x%x, pte_addr=0x%x, pte=0x%x\n",
+//             vaddr, pte0_addr, pte);
+//     }
+
+//     // 从二级PTE中取出实际的物理页号
+//     paddr_t ppn1 = pte & 0xfff00000;
+//     paddr_t ppn0 = pte & 0x000ffc00;
+
+//     paddr = (ppn1 << 2) | (ppn0 << 2) | voff;
+//   }
+//   else {
+//     paddr_t ppn1 = pte & 0xfff00000;
+//     paddr = (ppn1 << 2) | (vpn0) | voff;
+//   }
+
+//   assert(paddr == vaddr);
+//   return paddr;
+// }
+
 paddr_t isa_mmu_translate(vaddr_t vaddr, int len, int type) {
-  // 拆分虚拟地址
-  paddr_t vpn1 = vaddr & 0xffc00000;  // 高10位
-  paddr_t vpn0 = vaddr & 0x003ff000;  // 中10位
-  paddr_t voff = vaddr & 0x00000fff;  // 低12位 (页内偏移)
+  paddr_t vpn1, vpn0, voff;
+  paddr_t ppn1, ppn0, paddr;
+  vpn1 = vaddr & 0xffc00000;
+  vpn0 = vaddr & 0x003ff000;
+  voff = vaddr & 0x00000fff;
 
-  // 从 satp 中获取根页表物理页号(PPN)
-  paddr_t satp_val = csr(SATP);          // 读寄存器
-  paddr_t satp_ppn = satp_val & 0x003fffff;
+  paddr_t satp_ppn = csr(SATP) & 0x003fffff;
+  paddr_t pte_addr = satp_ppn * 4096 + (vpn1>>22) * 4;
 
-  // 计算一级页表项地址
-  paddr_t pte_addr = satp_ppn * 4096 + ((vpn1 >> 22) * 4);
-
-  // 4. 读取一级页表项 (PTE1)
   word_t pte = host_read(guest_to_host(pte_addr), 4);
+  if(!(pte&1)) {
+    //nemu_state.state = NEMU_ABORT;
+    //return 0x80000000;
+    panic("invalid PTE: vaddr=0x%x, pte_addr=0x%x, pte=0x%x\n", vaddr, pte_addr, pte);
+  } 
 
-  // 检查一级页表项有效位(V=1)；若无效则抛出异常
-  if (!(pte & 1)) {
-    panic("invalid PTE: vaddr=0x%x, pte_addr=0x%x, pte=0x%x\n",
-          vaddr, pte_addr, pte);
-  }
-
-  paddr_t paddr;
-
-  // 判断是否是叶子节点
-  if ((pte & 0x2) == 0 && (pte & 0x4) == 0 && (pte & 0x8) == 0) {
-    paddr_t pte0_addr = ((pte & 0xfffffc00) >> 10) * 4096
-                      + ((vpn0 >> 12) * 4);
-
-    // 读取二级页表项 (PTE2)
+  if ((pte&0x2)==0 && (pte&0x4)==0 && (pte&0x8)==0) {
+    
+    paddr_t pte0_addr = ((pte & 0xfffffc00)>>10) * 4096 + (vpn0>>12) * 4;
     pte = host_read(guest_to_host(pte0_addr), 4);
-    if (!(pte & 1)) {
-      panic("invalid PTE (2nd-level): vaddr=0x%x, pte_addr=0x%x, pte=0x%x\n",
-            vaddr, pte0_addr, pte);
-    }
 
-    // 从二级PTE中取出实际的物理页号
-    paddr_t ppn1 = pte & 0xfff00000;
-    paddr_t ppn0 = pte & 0x000ffc00;
+    if(!(pte&1)) {
+      panic("invalid PTE: vaddr=0x%x, pte_addr=0x%x, pte=0x%x\n", vaddr, pte_addr, pte);
+    } 
 
-    paddr = (ppn1 << 2) | (ppn0 << 2) | voff;
+    ppn1 = pte   & 0xfff00000;
+    ppn0 = pte   & 0x000ffc00;
+    paddr = (ppn1<<2) | (ppn0<<2) | voff;
   }
   else {
-    paddr_t ppn1 = pte & 0xfff00000;
-    paddr = (ppn1 << 2) | (vpn0) | voff;
+    ppn1 = pte   & 0xfff00000;
+    paddr = (ppn1<<2) | (vpn0) | voff;
   }
 
-  assert(paddr == vaddr);
+  //printf("paddr=%x, vaddr=%x\n", paddr, vaddr);
+  /*
+  if (vaddr>0x70000000 && vaddr<0x80000000) {
+    printf("vaddr=%x, paddr=%x\n", vaddr, paddr);
+  }
+  */
+
+  // NOTE: for tmp test of equiv mapping
+  // assert(paddr == vaddr);
+
   return paddr;
 }
