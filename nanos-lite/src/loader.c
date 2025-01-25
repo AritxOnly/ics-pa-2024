@@ -186,19 +186,25 @@ void context_uload(PCB *pcb, const char *filename, char *const argv[], char *con
     return;
   }
 
-  void *user_stack_va_base = (char *)pcb->as.area.end - STACK_SIZE;
   int num_pages = STACK_SIZE / PGSIZE;  
+
+  void *user_stack_va_base = (char *)pcb->as.area.end - STACK_SIZE;
+  void *user_stack_base    = new_page(num_pages);
+
   for (int i = 0; i < num_pages; i++) {
-    void *page_pa = new_page(1);
+    void *page_pa = (char *)user_stack_base    + i * PGSIZE;
     void *page_va = (char *)user_stack_va_base + i * PGSIZE;
+
     map(&pcb->as, page_va, page_pa, 0b111);
   }
 
-  uintptr_t sp = (uintptr_t)user_stack_va_base + STACK_SIZE;
+  uintptr_t sp   = (uintptr_t)user_stack_base    + STACK_SIZE - 1;  // 物理地址栈顶
+  uintptr_t vasp = (uintptr_t)user_stack_va_base + STACK_SIZE - 1;  // 虚拟地址栈顶
 
-  sp -= UNSPECIFIED_MEMORY;
+  sp   -= UNSPECIFIED_MEMORY;
+  vasp -= UNSPECIFIED_MEMORY;
 
-  Log("Current user stack: sp = %p", sp);
+  Log("Current user stack: sp = %p, vasp = %p", sp, vasp);
 
   int argc, envc;
 
@@ -213,16 +219,20 @@ void context_uload(PCB *pcb, const char *filename, char *const argv[], char *con
 
   for (int i = 0; i < argc; i++) {
     int len = strlen(argv[i]) + 1;
-    sp -= len;
     strncpy((char *)sp, argv[i], len);
     tmp_argv[i] = (char *)sp;
+
+    sp   -= len;
+    vasp -= len;
   }
 
   for (int i = 0; i < envc; i++) {
     int len = strlen(envp[i]) + 1;
-    sp -= len;
     strncpy((char *)sp, envp[i], len);
     tmp_envp[i] = (char *)sp;
+
+    sp   -= len;
+    vasp -= len;
   }
 
   typedef char ** space;
@@ -230,20 +240,27 @@ void context_uload(PCB *pcb, const char *filename, char *const argv[], char *con
   sp -= UNSPECIFIED_MEMORY;
   sp -= MEMORY_SPACE;
 
+  vasp -= UNSPECIFIED_MEMORY;
+  vasp -= MEMORY_SPACE;
+
   *(space)sp = NULL;
 
   for (int i = envc - 1; i >= 0; i--) {
-    sp -= MEMORY_SPACE;
+    sp   -= MEMORY_SPACE;
+    vasp -= MEMORY_SPACE;
     *(space)sp = tmp_envp[i];
   }
-  sp -= MEMORY_SPACE;
+  sp   -= MEMORY_SPACE;
+  vasp -= MEMORY_SPACE;
   *(space)sp = NULL;
 
   for (int i = argc - 1; i >= 0; i--) {
-    sp -= MEMORY_SPACE;
+    sp   -= MEMORY_SPACE;
+    vasp -= MEMORY_SPACE;
     *(space)sp = tmp_argv[i];
   }
-  sp -= MEMORY_SPACE;
+  vasp -= MEMORY_SPACE;
+  sp   -= MEMORY_SPACE;
   *(int *)sp = argc;
 
   Context *context = ucontext(&pcb->as, kstack, (void *)entry);
