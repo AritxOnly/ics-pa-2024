@@ -22,7 +22,7 @@
 int isa_mmu_check(vaddr_t vaddr, int len, int type) {
   if (vaddr >= 0x80000000) return MMU_DIRECT;
   uint32_t satp_val = csr(SATP);
-  uint32_t mode = satp_val & 0xf;
+  uint32_t mode = satp_val << 31;
   if (mode == 1) {
     return MMU_TRANSLATE;
   }
