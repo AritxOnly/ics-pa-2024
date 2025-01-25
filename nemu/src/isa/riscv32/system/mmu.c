@@ -24,7 +24,7 @@ int isa_mmu_check(vaddr_t vaddr, int len, int type) {
   int satp_val = csr(SATP);
   if (satp_val == 0) {
     return MMU_DIRECT;
-  } else if (satp_val >> 31 == 0) {
+  } else if (satp_val >> 31 == 1) {
     Log("Reached here, satp: 0x%x", satp_val);
     return MMU_TRANSLATE; 
   }
