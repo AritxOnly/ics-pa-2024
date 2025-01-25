@@ -20,13 +20,13 @@
 #include <memory/host.h>
 
 int isa_mmu_check(vaddr_t vaddr, int len, int type) {
-  if (vaddr >= 0x80000000) return MMU_DIRECT;
   uint32_t satp_val = csr(SATP);
+  Log("satp: 0x%x", satp_val);
+  if (vaddr >= 0x80000000) return MMU_DIRECT;
   // uint32_t mode = satp_val & 0xf;
   // if (mode == 1) {
   //   return MMU_TRANSLATE;
   // }
-  Log("satp: 0x%x", satp_val);
   if (satp_val == 0) {
     return MMU_DIRECT;
   }
