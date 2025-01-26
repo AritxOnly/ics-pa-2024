@@ -50,7 +50,7 @@ void do_syscall(Context *c) {
       //   yield();
       // }
 
-      halt(a[1]);  
+      // halt(a[1]);  
       c->GPRx = 0;
       break;
     case SYS_open: c->GPRx = fs_open((char *)a[1], a[2], a[3]); break;
