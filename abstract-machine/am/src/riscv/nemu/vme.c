@@ -66,12 +66,10 @@ void __am_switch(Context *c) {
   }
 }
 
-#define PTESIZE   4      // PTE大小
+#define PTESIZE   4
 
-#define VPN1_MASK 0xffc00000   // 高10位
-#define VPN0_MASK 0x003ff000   // 中10位
-#define PPN1_MASK 0xffc00000   // 物理地址高10位
-#define PPN0_MASK 0x003ff000   // 物理地址中10位
+#define VPN1_MASK 0xffc00000
+#define VPN0_MASK 0x003ff000
 
 #define V_MASK (1 << 0)  // valid
 #define R_MASK (1 << 1)  // read
@@ -80,55 +78,46 @@ void __am_switch(Context *c) {
 
 void map(AddrSpace *as, void *va, void *pa, int prot) {
   uintptr_t pdir_ppn = (uintptr_t)(as->ptr) >> 12;    // 顶级页表的PPN
-  uintptr_t pdir_base = pdir_ppn * PGSIZE;            // 顶级页表在物理内存中的起始地址
+  uintptr_t pdir_base = pdir_ppn << 12;               // 顶级页表在物理内存中的起始地址
 
   uintptr_t vaddr = (uintptr_t)va;
   uintptr_t vpn1 = (vaddr & VPN1_MASK) >> 22;  // 高10位下移到低位
   uintptr_t vpn0 = (vaddr & VPN0_MASK) >> 12;  // 中10位下移到低位
 
-  uintptr_t paddr = (uintptr_t)pa;
-  uintptr_t ppn1 = (paddr & PPN1_MASK) >> 2;   // 原代码把 ppn1>>2 放到PTE高位
-  uintptr_t ppn0 = (paddr & PPN0_MASK) >> 2;   // 同理
-
   uintptr_t pde_addr = pdir_base + vpn1 * PTESIZE;
 
   uintptr_t *pde_ptr = (uintptr_t *)pde_addr; 
-  uintptr_t pde_val = *pde_ptr;
+  uintptr_t pde_val  = *pde_ptr;
 
-  uintptr_t ptable_base;
+  uint32_t second_level_base;
   if (pde_val == 0) {
-    // 分配一页物理内存用于二级页表
-    ptable_base = (uintptr_t)pgalloc_usr(PGSIZE);
-    // 清零(保证新的页表中没有陈旧数据)
-    memset((void*)ptable_base, 0, PGSIZE);
+    second_level_base = (uintptr_t)pgalloc_usr(PGSIZE);
+    memset((void *)second_level_base, 0, PGSIZE); // 页清零
 
-    // 构造 PDE
-    uintptr_t pde_new = ((ptable_base & 0xfffff000) >> 2) | V_MASK;
+    uint32_t pde_ppn = second_level_base >> 12;
+    uint32_t pde_new = (pde_ppn << 10) | V_MASK;
 
-    // 写回 PDE
     *pde_ptr = pde_new;
   } else {
-    // 已经存在二级页表 => 取出其 PPN, 得到二级页表基地址(physical)
-    uintptr_t pte_ppn = ((pde_val & 0xfffffc00) >> 10);
-    ptable_base = pte_ppn * PGSIZE;
+    // PDE有效，取二级地址
+    uint32_t pde_ppn = pde_val >> 10;
+    second_level_base = pde_ppn << 12;
   }
 
-  // 计算二级页表项(PTE)在物理地址空间中的位置
-  uintptr_t pte_addr = ptable_base + vpn0 * PTESIZE;
-
-  // 如果 prot == 0 => 表示取消映射 => 写0即可
+  uintptr_t pte_addr = second_level_base + vpn0 * PTESIZE;
+  uint32_t *pte_ptr  = (uint32_t *)guest_to_host(pte_addr);
   if (prot == 0) {
-    *(uintptr_t*)pte_addr = 0;
+    *pte_ptr = 0;
     return;
   }
 
-  // 否则，构造新的PTE来映射 [va => pa]
-  uintptr_t flags = V_MASK | R_MASK | W_MASK | X_MASK;
-  // 拼出最终的 pte
-  uintptr_t pte_val = (ppn1 | ppn0) | flags;
+  uint32_t paddr32 = (uintptr_t)pa;
+  uint32_t ppn     = paddr32 >> 12;
 
-  // 写回二级页表项
-  *(uintptr_t*)pte_addr = pte_val;
+  uint32_t flags   = V_MASK | R_MASK | W_MASK | X_MASK;
+  uint32_t pte_val = (ppn << 10) | flags;
+
+  *pte_ptr = pte_val;
 }
 
 Context *ucontext(AddrSpace *as, Area kstack, void *entry) {
