@@ -22,6 +22,8 @@
 int isa_mmu_check(vaddr_t vaddr, int len, int type) {
   int satp_val = csr(SATP);
   int mode     = satp_val >> 31;
+
+  Log("mode = %d", mode);
   
   if (mode == 0) {
     // Bare mode
