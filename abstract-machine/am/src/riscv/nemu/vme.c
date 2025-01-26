@@ -66,7 +66,7 @@ void __am_switch(Context *c) {
   }
 }
 
-#define PTESIZE   8
+#define PTESIZE   4
 
 #define VPN1_MASK 0xffc00000
 #define VPN0_MASK 0x003ff000
@@ -93,7 +93,7 @@ void map(AddrSpace *as, void *va, void *pa, int prot) {
     *(uintptr_t *)pte_addr = ((pde_addr & (VPN0_MASK | VPN1_MASK)) >> 2) | V_MASK;
   } else {
     uintptr_t pte_ppn = ((*(uintptr_t*)pde_addr) & 0xfffffc00) >> 10;
-    pte_addr = pte_ppn * PGSIZE + (vpn0 >> 12) * PTESIZE; 
+    pte_addr = pte_ppn * PGSIZE + vpn0 * PTESIZE; 
   }
 
   uintptr_t pte = ((paddr & VPN1_MASK) >> 2) | ((paddr & VPN0_MASK) >> 2) | 
