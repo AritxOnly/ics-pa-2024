@@ -56,8 +56,9 @@ paddr_t isa_mmu_translate(vaddr_t vaddr, int len, int type) {
 
   // 检查一级页表项有效位(V=1)；若无效则抛出异常
   if ((pde & 1) == 0) {
-    panic("invalid PDE: vaddr=0x%x, pde_addr=0x%x, pde=0x%x\n",
-          vaddr, pde_addr, pde);
+    extern CPU_state cpu;
+    panic("invalid PDE: vaddr=0x%x, pde_addr=0x%x, pde=0x%x, pc=0x%x\n",
+          vaddr, pde_addr, pde, cpu.pc);
   }
 
   bool leaf1 = (((pde >> 1) & 0x7) != 0);
@@ -75,8 +76,9 @@ paddr_t isa_mmu_translate(vaddr_t vaddr, int len, int type) {
     word_t   pte               = host_read(guest_to_host(pte_addr), 4);
 
     if ((pte & 0x1) == 0) {
-      panic("invalid PTE: vaddr=0x%x, pte_addr=0x%x, pte=0x%x\n",
-          vaddr, pte_addr, pte);
+      extern CPU_state cpu;
+      panic("invalid PTE: vaddr=0x%x, pte_addr=0x%x, pte=0x%x, pc=0x%x\n",
+          vaddr, pte_addr, pte, cpu.pc);
     }
 
     bool leaf2 = (((pte >> 1) & 0x7) != 0);
