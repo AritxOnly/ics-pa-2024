@@ -31,22 +31,30 @@ void init_proc() {
   // naive_uload(NULL, ENTRY_BIN);
 }
 
-static int current_proc = -1;
+// static int current_proc = -1;
 
 Context* schedule(Context *prev) {
-  if (prev && current_proc != -1) {
-    pcb[current_proc].cp = prev;  // 保存现场到该PCB
-  }
+  // save the context pointer
+  current->cp = prev;
 
-  // 切换到下一个非空的PCB进程
-  do {
-    current_proc = (current_proc + 1) % MAX_NR_PROC;
-    current = &pcb[current_proc];   // 更新全局指针
-    // Log("current_proc = %d, current = %p, current->cp = %p", current_proc, current, current->cp);
-  } while (!current->cp);
+  // switch between pcb[0] and pcb[1]
+  current = (current == &pcb[0] ? &pcb[1] : &pcb[0]);
 
-  Log("mepc: %p", current->cp->mepc);
-
-  // 返回下一个进程的cp，进入新的上下文
+  // then return the new context
   return current->cp;
+  // if (prev && current_proc != -1) {
+  //   pcb[current_proc].cp = prev;  // 保存现场到该PCB
+  // }
+
+  // // 切换到下一个非空的PCB进程
+  // do {
+  //   current_proc = (current_proc + 1) % MAX_NR_PROC;
+  //   current = &pcb[current_proc];   // 更新全局指针
+  //   // Log("current_proc = %d, current = %p, current->cp = %p", current_proc, current, current->cp);
+  // } while (!current->cp);
+
+  // Log("mepc: %p", current->cp->mepc);
+
+  // // 返回下一个进程的cp，进入新的上下文
+  // return current->cp;
 }
