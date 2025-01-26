@@ -77,30 +77,66 @@ void __am_switch(Context *c) {
 #define X_MASK (1 << 3)  // execute
 
 void map(AddrSpace *as, void *va, void *pa, int prot) {
-  uintptr_t pdir = (uintptr_t)(as->ptr) >> 12;    // 顶级页表的PPN
+  uintptr_t pdir = (uintptr_t)(as->ptr) >> 12;
 
-  uintptr_t vaddr = (uintptr_t)va;
-  uintptr_t vpn1 = (vaddr & VPN1_MASK) >> 22;  // 高10位下移到低位
-  uintptr_t vpn0 = (vaddr & VPN0_MASK) >> 12;  // 中10位下移到低位
+  uintptr_t vpn1, vpn0;
+  uintptr_t ppn1, ppn0;
+  uintptr_t pte;
+  uintptr_t pte1_addr, pte0_addr;
+  uintptr_t v=1, r=1<<1, w=1<<2, x=1<<3;
 
-  uintptr_t paddr = (uintptr_t)pa;
+  vpn1 = (uintptr_t) va & 0xffc00000;
+  vpn0 = (uintptr_t) va & 0x003ff000;
+  ppn1 = (uintptr_t) pa & 0xffc00000;
+  ppn0 = (uintptr_t) pa & 0x003ff000;
 
-  uintptr_t pde_addr = pdir * PGSIZE + vpn1 * PTESIZE;
+  pte1_addr = pdir * PGSIZE + (vpn1>>22) * PTESIZE;
 
-  uintptr_t pte_addr;
-  if (*(uintptr_t *)pde_addr == 0) {
-    pte_addr = (uintptr_t)pgalloc_usr(PGSIZE);
-    *(uintptr_t *)pte_addr = ((pde_addr & (VPN0_MASK | VPN1_MASK)) >> 2) | V_MASK;
+  if (*(uintptr_t*)pte1_addr == 0) {
+    pte0_addr = (uintptr_t) pgalloc_usr(PGSIZE);
+    *(uintptr_t*)pte1_addr = ((pte0_addr & 0xfffff000) >>2) | v;
+
   } else {
-    uintptr_t pte_ppn = ((*(uintptr_t*)pde_addr) & 0xfffffc00) >> 10;
-    pte_addr = pte_ppn * PGSIZE + vpn0 * PTESIZE; 
+    uintptr_t pte_ppn = ((*(uintptr_t*)pte1_addr) & 0xfffffc00) >> 10;
+    pte0_addr = pte_ppn * PGSIZE + (vpn0>>12) * PTESIZE; 
   }
+  //printf("pte0_addr = %x, va=%x\n", pte0_addr, va);
 
-  uintptr_t pte = ((paddr & VPN1_MASK) >> 2) | ((paddr & VPN0_MASK) >> 2) | 
-                  X_MASK | W_MASK | R_MASK | V_MASK;
-  
-  *(uintptr_t *)pte_addr = pte;
+  pte = (ppn1>>2) | (ppn0>>2) | x | w | r | v;
+  *(uintptr_t*)pte0_addr = pte;
+
+  /*
+  if ((uintptr_t)va < 0x4000dc7c && (uintptr_t)va+4096 > 0x4000dc7c ) {
+    printf("@map: va = %x, pa = %x\n", va, pa);
+  }
+  */
 }
+
+// void map(AddrSpace *as, void *va, void *pa, int prot) {
+//   uintptr_t pdir = (uintptr_t)(as->ptr) >> 12;    // 顶级页表的PPN
+
+//   uintptr_t vaddr = (uintptr_t)va;
+//   uintptr_t vpn1 = (vaddr & VPN1_MASK) >> 22;  // 高10位下移到低位
+//   uintptr_t vpn0 = (vaddr & VPN0_MASK) >> 12;  // 中10位下移到低位
+
+//   uintptr_t paddr = (uintptr_t)pa;
+
+//   uintptr_t pde_addr = pdir * PGSIZE + vpn1 * PTESIZE;
+
+//   uintptr_t pte_addr;
+//   if (*(uintptr_t *)pde_addr == 0) {
+//     pte_addr = (uintptr_t)pgalloc_usr(PGSIZE);
+//     *(uintptr_t *)pte_addr = ((pde_addr & (VPN0_MASK | VPN1_MASK)) >> 2) | V_MASK;
+//   } else {
+//     uintptr_t pte_ppn = ((*(uintptr_t*)pde_addr) & 0xfffffc00) >> 10;
+//     pte_addr = pte_ppn * PGSIZE + vpn0 * PTESIZE; 
+//   }
+
+//   uintptr_t pte = ((paddr & VPN1_MASK) >> 2) | ((paddr & VPN0_MASK) >> 2) | 
+//                   X_MASK | W_MASK | R_MASK | V_MASK;
+  
+//   *(uintptr_t *)pte_addr = pte;
+// }
 
 #define MSTATUS_MMP  0x1800
 #define MSTATUS_MPIE 0x80
