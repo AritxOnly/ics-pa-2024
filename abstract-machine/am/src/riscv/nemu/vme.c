@@ -123,21 +123,23 @@ void map(AddrSpace *as, void *va, void *pa, int prot) {
   uintptr_t ppn1  = paddr & PN1_MASK;
   uintptr_t ppn0  = paddr & PN0_MASK;
 
-  uintptr_t pde_addr = pdir * PGSIZE + (vpn1 >> 22) * PTESIZE;
+  uintptr_t pte1_addr = pdir * PGSIZE + (vpn1 >> 22) * PTESIZE;
 
-  uintptr_t pte_addr;
-  if (*(uintptr_t *)pde_addr == 0) {
-    pte_addr = (uintptr_t)pgalloc_usr(PGSIZE);
-    *(uintptr_t *)pte_addr = ((pde_addr & 0xfffff000) >> 2) | V_MASK;
+  uintptr_t pte0_addr;
+  if (*(uintptr_t *)pte1_addr == 0) {
+    pte0_addr = (uintptr_t)pgalloc_usr(PGSIZE);
+    *(uintptr_t *)pte0_addr = ((pte1_addr & 0xfffff000) >> 2) | V_MASK;
   } else {
-    uintptr_t pte_ppn = ((*(uintptr_t*)pde_addr) & 0xfffffc00) >> 10;
-    pte_addr = pte_ppn * PGSIZE + (vpn0 >> 12) * PTESIZE; 
+    uintptr_t pte_ppn = ((*(uintptr_t*)pte1_addr) & 0xfffffc00) >> 10;
+    pte0_addr = pte_ppn * PGSIZE + (vpn0 >> 12) * PTESIZE; 
   }
+  
+  printf("pte0_addr = %x, va=%x\n", pte0_addr, va);
 
   uintptr_t pte = (ppn1 >> 2) | (ppn0 >> 2) | 
                   X_MASK | W_MASK | R_MASK | V_MASK;
   
-  *(uintptr_t *)pte_addr = pte;
+  *(uintptr_t *)pte0_addr = pte;
 }
 
 #define MSTATUS_MMP  0x1800
