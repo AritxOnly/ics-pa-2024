@@ -21,7 +21,7 @@ void hello_fun(void *arg) {
 
 void init_proc() {
   char *const argv[] = {"/bin/exec-test", "", NULL};
-  // context_kload(&pcb[0], hello_fun, (void *)0x114514);
+  context_kload(&pcb[1], hello_fun, (void *)0x114514);
   context_uload(&pcb[0], "/bin/exec-test", argv, (char *const *){NULL});
   switch_boot_pcb();
 
