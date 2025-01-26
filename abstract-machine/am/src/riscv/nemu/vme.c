@@ -98,7 +98,7 @@ void map(AddrSpace *as, void *va, void *pa, int prot) {
     pte_addr = pte_ppn * PGSIZE + (vpn0 >> 12) * PTESIZE; 
   }
 
-  printf("pte_addr = %x, va=%x\n", pte_addr, va);
+  // printf("pte_addr = %x, va=%x\n", pte_addr, va);
 
   uintptr_t pte = (ppn1 >> 2) | (ppn0 >> 2) | 
                   X_MASK | W_MASK | R_MASK | V_MASK;
