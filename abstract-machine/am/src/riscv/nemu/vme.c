@@ -66,7 +66,7 @@ void __am_switch(Context *c) {
   }
 }
 
-#define PTESIZE   4
+#define PTESIZE   8
 
 #define VPN1_MASK 0xffc00000
 #define VPN0_MASK 0x003ff000
