@@ -44,10 +44,10 @@ paddr_t isa_mmu_translate(vaddr_t vaddr, int len, int type) {
 
   // 从 satp 中获取根页表物理页号(PPN)
   paddr_t satp_val = csr(SATP);          // 读寄存器
-  paddr_t root_ppn = satp_val >> 10;
+  paddr_t root_ppn = satp_val & 0x3fffff;
 
   // 计算一级页表项基址
-  paddr_t root_pt_base = ((paddr_t)root_ppn << 12);
+  paddr_t root_pt_base = ((paddr_t)root_ppn * 4096);
 
   paddr_t pde_addr = root_pt_base + vpn1 * 4;
 
@@ -63,18 +63,15 @@ paddr_t isa_mmu_translate(vaddr_t vaddr, int len, int type) {
   bool leaf1 = (((pde >> 1) & 0x7) != 0);
   if (leaf1) {
     // 如果为叶子
-    uint32_t pde_ppn     = pde >> 10;
-    paddr_t  pde_base    = (paddr_t)pde_ppn << 12;
+    uint32_t pde_ppn     = pde & 0xfff00000;
 
-    paddr_t  page_offest = (vaddr & 0x003fffff);
-
-    return pde_base + page_offest;
+    return (pde_ppn << 2) | vpn0 | voff;
   } else {
     // 读二级页表
-    uint32_t pde_ppn           = pde >> 10;
-    paddr_t  second_level_base = (paddr_t)pde_ppn << 12;
+    uint32_t pde_ppn           = pde & 0xfffffc00;
+    paddr_t  second_level_base = (paddr_t)pde_ppn >> 10;
 
-    paddr_t  pte_addr          = second_level_base + (vpn0 * 4);
+    paddr_t  pte_addr          = second_level_base * 4096 + (vpn0 * 4);
     word_t   pte               = host_read(guest_to_host(pte_addr), 4);
 
     if ((pte & 0x1) == 0) {
@@ -87,10 +84,10 @@ paddr_t isa_mmu_translate(vaddr_t vaddr, int len, int type) {
       panic("No 3-level page table in Sv32. PDE/PTE not leaf => invalid.\n");
     }
 
-    uint32_t pte_ppn  = pte >> 10;
-    paddr_t  pte_base = (paddr_t)pte_ppn << 12;
+    uint32_t ppn1 = pte & 0xfff00000;
+    uint32_t ppn0 = pte & 0x000ffc00;
 
-    return pte_base + voff;
+    return (ppn1 << 2) | (ppn0 << 2) | voff;
   }
 }
 
