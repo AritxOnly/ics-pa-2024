@@ -21,11 +21,13 @@
 
 int isa_mmu_check(vaddr_t vaddr, int len, int type) {
   int satp_val = csr(SATP);
-  int mode     = satp_val & 0xf;
+  int mode     = satp_val >> 31;
   
-  if (satp_val == 0) {
+  if (mode == 0) {
+    // Bare mode
     return MMU_DIRECT;
   } else if (mode == 1) {
+    // Sv32 mode
     return MMU_TRANSLATE;
   }
 
