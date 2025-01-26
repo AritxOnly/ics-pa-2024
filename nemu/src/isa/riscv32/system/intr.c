@@ -18,6 +18,9 @@
 
 void etrace_info(word_t NO, vaddr_t epc, word_t *csrs);
 
+#define MSTATUS_MIE  (1 << 3)
+#define MSTATUS_MPIE (1 << 7)
+
 word_t isa_raise_intr(word_t NO, vaddr_t epc) {
   /* TODO: Trigger an interrupt/exception with ``NO''.
    * Then return the address of the interrupt/exception vector.
@@ -39,5 +42,10 @@ word_t isa_raise_intr(word_t NO, vaddr_t epc) {
 }
 
 word_t isa_query_intr() {
+  bool mie_status = (csr(MSTATUS) & MSTATUS_MIE) != 0;
+  if (cpu.intr && mie_status) {
+    cpu.intr = false;
+    return IRQ_TIMER;
+  }
   return INTR_EMPTY;
 }

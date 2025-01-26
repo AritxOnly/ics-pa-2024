@@ -48,7 +48,7 @@ paddr_t isa_mmu_translate(vaddr_t vaddr, int len, int type) {
 
   paddr_t pde_addr = root_pt_base + vpn1 * 4;
 
-  // 4. 读取一级页表项 (PTE1)
+  // 读取一级页表项 (PTE1)
   word_t pde = host_read(guest_to_host(pde_addr), 4);
 
   // 检查一级页表项有效位(V=1)；若无效则抛出异常

@@ -105,7 +105,7 @@ void map(AddrSpace *as, void *va, void *pa, int prot) {
   }
 
   uintptr_t pte_addr = second_level_base + vpn0 * PTESIZE;
-  uint32_t *pte_ptr  = (uint32_t *)guest_to_host(pte_addr);
+  uint32_t *pte_ptr  = (uint32_t *)pte_addr;
   if (prot == 0) {
     *pte_ptr = 0;
     return;
@@ -120,6 +120,9 @@ void map(AddrSpace *as, void *va, void *pa, int prot) {
   *pte_ptr = pte_val;
 }
 
+#define MSTATUS_MMP  0x1800
+#define MSTATUS_MPIE 0x80
+
 Context *ucontext(AddrSpace *as, Area kstack, void *entry) {
   Context *context = (Context *)(kstack.end - sizeof(Context));
 
@@ -128,7 +131,7 @@ Context *ucontext(AddrSpace *as, Area kstack, void *entry) {
   // printf("[ucontext: %d] as->ptr = %p\n", __LINE__, as->ptr);
 
   context->mepc    = (uintptr_t)entry;
-  context->mstatus = 0x1800;
+  context->mstatus = MSTATUS_MMP | MSTATUS_MPIE;  
   context->gpr[2]  = (uintptr_t)context;
   context->pdir    = as->ptr;
 

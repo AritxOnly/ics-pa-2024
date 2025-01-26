@@ -50,6 +50,9 @@ bool cte_init(Context*(*handler)(Event, Context*)) {
   return true;
 }
 
+#define MSTATUS_MMP  0x1800
+#define MSTATUS_MPIE 0x80
+
 Context *kcontext(Area kstack, void (*entry)(void *), void *arg) {
   Context *context = (Context *)(kstack.end - sizeof(Context));
 
@@ -59,7 +62,7 @@ Context *kcontext(Area kstack, void (*entry)(void *), void *arg) {
 
   context->gpr[2]   = sp;
   context->mepc     = (uintptr_t)entry;
-  context->mstatus  = 0x1800;
+  context->mstatus  = MSTATUS_MMP | MSTATUS_MPIE;
   context->pdir     = NULL;
   context->gpr[10]  = (uintptr_t)arg;
 

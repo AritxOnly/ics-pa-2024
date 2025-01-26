@@ -16,4 +16,6 @@
 #include <isa.h>
 
 void dev_raise_intr() {
+    extern CPU_state cpu;
+    cpu.intr = true;
 }
