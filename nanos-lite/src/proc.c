@@ -22,7 +22,7 @@ void hello_fun(void *arg) {
 void init_proc() {
   char *const argv[] = {"/bin/pal", "--skip", NULL};
   // context_kload(&pcb[0], hello_fun, (void *)0x114514);
-  context_uload(&pcb[0], "/bin/pal", argv, (char *const *){NULL});
+  context_uload(&pcb[0], "/bin/dummy", argv, (char *const *){NULL});
   switch_boot_pcb();
 
   Log("Initializing processes...");
@@ -45,7 +45,7 @@ Context* schedule(Context *prev) {
     // Log("current_proc = %d, current = %p, current->cp = %p", current_proc, current, current->cp);
   } while (!current->cp);
 
-  Log("mepc: %p", current->cp->mepc);
+  // Log("mepc: %p", current->cp->mepc);
 
   // 返回下一个进程的cp，进入新的上下文
   return current->cp;
