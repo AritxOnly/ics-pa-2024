@@ -24,7 +24,7 @@ int isa_mmu_check(vaddr_t vaddr, int len, int type) {
   int satp_val = csr(SATP);
   int mode     = satp_val & 0xf;
 
- Log("satp_val = %d, mode = %d", satp_val, mode); 
+//  Log("satp_val = %d, mode = %d", satp_val, mode); 
   if (satp_val == 0) {
     return MMU_DIRECT;
   } else if (mode == 1) {
