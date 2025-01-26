@@ -43,10 +43,8 @@ word_t isa_raise_intr(word_t NO, vaddr_t epc) {
 
 word_t isa_query_intr() {
   bool mie_status = (csr(MSTATUS) & MSTATUS_MIE) != 0;
-  Log("mie_status=%s", mie_status ? "true" : "false");
   if (cpu.intr && mie_status) {
     cpu.intr = false;
-    Log("Raising irq_timer");
     return IRQ_TIMER;
   }
   return INTR_EMPTY;

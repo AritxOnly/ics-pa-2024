@@ -17,6 +17,6 @@
 
 void dev_raise_intr() {
     extern CPU_state cpu;
-    Log("Raised intr");
+    // Log("Raised intr");
     cpu.intr = true;
 }
