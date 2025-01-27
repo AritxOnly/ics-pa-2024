@@ -20,7 +20,7 @@ void hello_fun(void *arg) {
 }
 
 // #define SIMPLE_SCHEDULE
-#define DIFFTEST_SCHEDULE
+// #define DIFFTEST_SCHEDULE
 
 void init_proc() {
   char *const argv[] = {NULL};
@@ -53,9 +53,7 @@ Context* schedule(Context *prev) {
 static int current_proc = -1;
 
 Context* schedule(Context *prev) {
-  if (prev && current_proc != -1) {
-    pcb[current_proc].cp = prev;  // 保存现场到该PCB
-  }
+  current->cp = prev;
 
   // 切换到下一个非空的PCB进程
   do {
