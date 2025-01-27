@@ -84,7 +84,7 @@ static void exec_once(Decode *s, vaddr_t pc) {
 #endif
 }
 
-// #define TIMER
+// #define TIMER 
 
 static void execute(uint64_t n) {
   Decode s;
