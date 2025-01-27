@@ -19,12 +19,13 @@ void hello_fun(void *arg) {
   }
 }
 
-#define SIMPLE_SCHEDULE
+// #define SIMPLE_SCHEDULE
+#define DIFFTEST_SCHEDULE
 
 void init_proc() {
   char *const argv[] = {NULL};
   context_uload(&pcb[0], "/bin/menu", argv, (char *const *){NULL});
-  context_kload(&pcb[1], hello_fun, (void *)0x114514);
+  // context_kload(&pcb[1], hello_fun, (void *)0x114514);
   switch_boot_pcb();
 
   Log("Initializing processes...");
@@ -34,6 +35,21 @@ void init_proc() {
 }
 
 #if !defined (SIMPLE_SCHEDULE)
+#if defined (DIFFTEST_SCHEDULE)
+static int curr_idx=3;
+
+Context* schedule(Context *prev) {
+  current->cp = prev;
+  while(1) {
+    curr_idx = (curr_idx+1)%4;
+    if (pcb[curr_idx].cp != 0) {
+      current = &pcb[curr_idx];
+      break;
+    }
+  }
+  return current->cp;
+}
+#else
 static int current_proc = -1;
 
 Context* schedule(Context *prev) {
@@ -53,6 +69,7 @@ Context* schedule(Context *prev) {
   // 返回下一个进程的cp，进入新的上下文
   return current->cp;
 }
+#endif
 #else
 Context* schedule(Context *prev) {
   // save the context pointer
