@@ -23,7 +23,7 @@ void hello_fun(void *arg) {
 
 void init_proc() {
   char *const argv[] = {"/bin/pal", "--skip", NULL};
-  context_uload(&pcb[0], "/bin/pal", argv, (char *const *){NULL});
+  context_uload(&pcb[0], "/bin/exec", argv, (char *const *){NULL});
 #if defined (SIMPLE_SCHEDULE)
   context_kload(&pcb[1], hello_fun, (void *)0x114514);
 #endif
