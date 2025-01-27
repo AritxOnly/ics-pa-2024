@@ -19,14 +19,12 @@ void hello_fun(void *arg) {
   }
 }
 
-#define SIMPLE_SCHEDULE
+// #define SIMPLE_SCHEDULE
 
 void init_proc() {
   char *const argv[] = {NULL};
   context_uload(&pcb[0], "/bin/menu", argv, (char *const *){NULL});
-#if defined (SIMPLE_SCHEDULE)
   context_kload(&pcb[1], hello_fun, (void *)0x114514);
-#endif
   switch_boot_pcb();
 
   Log("Initializing processes...");
