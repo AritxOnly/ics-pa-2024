@@ -16,12 +16,13 @@ Context* __am_irq_handle(Context *c) {
 
     /* 在navy-apps/libs/libos/syscall.h中有一个enum的定义 */
     if (c->mcause >= 0 && c->mcause < 20) {
+      c->mepc += 4;
       ev.event = EVENT_SYSCALL;
       goto goto_finished;
     }
 
     switch (c->mcause) {
-      case -1: ev.event = EVENT_YIELD; break;
+      case -1: c->mepc += 4; ev.event = EVENT_YIELD; break;
       case 0x80000007: ev.event = EVENT_IRQ_TIMER; break;
       default: 
         printf("Unkown mcause code: 0x%8x(%d)\n", c->mcause); 
