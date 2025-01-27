@@ -133,12 +133,9 @@ void context_kload(PCB *pcb, void (*entry)(void *), void *arg) {
 #define UNSPECIFIED_MEMORY 0
 #define MEMORY_SPACE sizeof(void *)
 
-static inline void clear_display();
-
 void context_uload(PCB *pcb, const char *filename, char *const argv[], char *const envp[]) {
   protect(&pcb->as);
-  
-  clear_display();
+    io_write(AM_GPU_FBDRAW, 0, 0, NULL, io_read(AM_GPU_CONFIG).width, io_read(AM_GPU_CONFIG).height, true);
 
   Area kstack = {
     .start = pcb->stack,
@@ -235,10 +232,4 @@ void context_uload(PCB *pcb, const char *filename, char *const argv[], char *con
   pcb->cp->GPRx = sp;
 
   Log("mepc: %p", pcb->cp->mepc);
-}
-
-static inline void clear_display() {
-  int w = io_read(AM_GPU_CONFIG).width;
-  int h = io_read(AM_GPU_CONFIG).height;
-  io_write(AM_GPU_FBDRAW, 0, 0, NULL, w, h, true);
 }
