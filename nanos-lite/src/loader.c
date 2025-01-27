@@ -31,7 +31,8 @@ size_t get_ramdisk_size();
 # define Elf_Phdr Elf32_Phdr
 #endif
 
-#define PGMASK ~(PGSIZE - 1)
+#define PGMASK   0xfffff000
+#define INPGMASK 0x00000fff
 
 static uintptr_t loader(PCB *pcb, const char *filename) {
   int fd = fs_open(filename, 0, 0);
@@ -66,74 +67,39 @@ static uintptr_t loader(PCB *pcb, const char *filename) {
   for (int i = 0; i < ehdr.e_phnum; i++) {
     Elf_Phdr *phdr = &phdrs[i];
     if (phdr->p_type == PT_LOAD) {
-      uint32_t vaddr      = phdr->p_vaddr;
-      uint32_t mem_size   = phdr->p_memsz;
-      uint32_t file_size  = phdr->p_filesz;
-      uint32_t offset     = phdr->p_offset;
+      uintptr_t vaddr_start = phdr->p_vaddr;
+      uintptr_t vaddr_load  = phdr->p_vaddr & PGMASK;
+      uintptr_t paddr_start = 0;
+      uintptr_t vaddr_end   = phdr->p_vaddr + phdr->p_memsz;
+      uint32_t  offset      = phdr->p_offset;
+      uint32_t  mem_size    = phdr->p_memsz;
+      uint32_t  file_size   = phdr->p_filesz;
 
-      // fseek(fp, offset, SEEK_SET);
       fs_lseek(fd, offset, SEEK_SET);
 
-      // 对齐
-      uint32_t page_start = vaddr & PGMASK;
-      uint32_t page_end   = (vaddr + mem_size + PGSIZE - 1) & PGMASK;
+      if (pcb) {
+        while (vaddr_load <= vaddr_end) {
+          char *page = new_page(1);
 
-      uint32_t loaded = 0;
-      uint32_t seg_size = page_end - page_start;
+          map(&(pcb->as), (char *)vaddr_load, page, 0b111);
 
-      while (loaded < seg_size) {
-        uint32_t page_vaddr = page_start + loaded;
+          fs_read(fd, page + (vaddr_start & INPGMASK), PGSIZE);
 
-        // 分配一页物理内存
-        void *pa = new_page(1); // 每次分配一页(4096字节)
-        assert(pa);
-
-        // 将这页映射到用户进程地址空间中
-        map(&(pcb->as), (void *)page_vaddr, pa, 0b111);
-
-        // Log("assigned %p to %p", page_vaddr, pa);
-
-        uint32_t page_bytes = PGSIZE;  // 4KB
-        if (loaded + page_bytes > seg_size) {
-          page_bytes = seg_size - loaded;
+          vaddr_load += PGSIZE;
+          if (!paddr_start) paddr_start = (uintptr_t)page;
         }
 
-        uint32_t read_bytes = 0;
-        if (loaded < file_size) {
-          read_bytes = file_size - loaded;
-          if (read_bytes > page_bytes) {
-            read_bytes = page_bytes;
-          }
-        }
+        memset((char*)(paddr_start + (vaddr_start & INPGMASK) + file_size), 
+            0, mem_size - file_size);
 
-        // 处理段首未对齐的情况：如果这是段的第一页且 vaddr 不是对齐的
-        uint32_t page_inner_offset = 0;
-        if (loaded == 0) {
-          page_inner_offset = vaddr & 0xfff;  // 段起始相对于该页的偏移
-        }
-
-        fs_lseek(fd, offset + loaded, SEEK_SET);
-
-        if (read_bytes > 0) {
-          size_t nr = fs_read(fd, (char *)pa + page_inner_offset, read_bytes);
-          assert(nr == read_bytes);
-        }
-
-        loaded += page_bytes;
+        pcb->max_brk = (uintptr_t)vaddr_load;
+      } else {
+        fs_read(fd, (char *)vaddr_load, file_size);
+        memset((char *)(vaddr_start + file_size), 0, mem_size - file_size);
       }
 
-      // int ret = fread((void *)(uintptr_t)vaddr, 1, file_size, fp);
-      // size_t ret = ramdisk_read((void *)(uintptr_t)vaddr, offset, file_size);
-      // size_t ret = fs_read(fd, (void *)(uintptr_t)vaddr, file_size);
-      // assert(ret == file_size);
-
-      // if (mem_size > file_size) {
-      //   memset((void *)(uintptr_t)(vaddr + file_size), 0, mem_size - file_size);
-      //   // 清零
-      // }
-
       Log("Loaded segment %d: vaddr = 0x%08x, memsz = 0x%08x, filesz = 0x%08x", 
-          i, vaddr, mem_size, file_size);
+          i, vaddr_start, mem_size, file_size);
     }
   }
 
