@@ -162,7 +162,7 @@ static int decode_exec(Decode *s) {
   INSTPAT("??????? ????? ????? 001 ????? 11100 11", csrrw, I, if (rd != 0) { R(rd) = CSR(imm); } CSR(imm) = src1);
   INSTPAT("??????? ????? ????? 010 ????? 11100 11", csrrs, I, if (rd != 0) { R(rd) = CSR(imm); } CSR(imm) = CSR(imm) | src1);
 
-  INSTPAT("0000000 00000 00000 000 00000 11100 11", ecall  , N, s->dnpc = isa_raise_intr(R(MUXDEF(__riscv_e, 15/* a5 */, 17/* a7 */)), s->snpc)); // Transfer control to OS
+  INSTPAT("0000000 00000 00000 000 00000 11100 11", ecall  , N, s->dnpc = isa_raise_intr(R(MUXDEF(__riscv_e, 15/* a5 */, 17/* a7 */)), s->pc)); // Transfer control to OS
   INSTPAT("0000000 00001 00000 000 00000 11100 11", ebreak , N, NEMUTRAP(s->pc, R(10))); // R(10) is $a0  // Transfer control to debugger
   INSTPAT("0011000 00010 00000 000 00000 11100 11", mret   , N, s->dnpc = CSR(MEPC); recover_mstatus());
   INSTPAT("??????? ????? ????? ??? ????? ????? ??", inv    , N, INV(s->pc));
