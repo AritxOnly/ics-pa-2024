@@ -136,9 +136,9 @@ void context_kload(PCB *pcb, void (*entry)(void *), void *arg) {
 static inline void clear_display();
 
 void context_uload(PCB *pcb, const char *filename, char *const argv[], char *const envp[]) {
-  clear_display();
-
   protect(&pcb->as);
+  
+  clear_display();
 
   Area kstack = {
     .start = pcb->stack,
