@@ -22,7 +22,7 @@ Context* __am_irq_handle(Context *c) {
 
     switch (c->mcause) {
       case -1: ev.event = EVENT_YIELD; break;
-      case 0x80000007: c->mepc -= 4; ev.event = EVENT_IRQ_TIMER; break;
+      case 0x80000007: c->mepc += 4; ev.event = EVENT_IRQ_TIMER; break;
       default: 
         printf("Unkown mcause code: 0x%8x(%d)\n", c->mcause); 
         ev.event = EVENT_ERROR; 
