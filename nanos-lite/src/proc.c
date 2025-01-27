@@ -36,6 +36,7 @@ void init_proc() {
 
 #if !defined (SIMPLE_SCHEDULE)
 #if defined (DIFFTEST_SCHEDULE)
+// Copied from https://github.com/yfxiang0112/njupa2023 for difftest
 static int curr_idx=3;
 
 Context* schedule(Context *prev) {
