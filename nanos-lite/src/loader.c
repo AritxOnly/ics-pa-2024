@@ -135,7 +135,6 @@ void context_kload(PCB *pcb, void (*entry)(void *), void *arg) {
 
 void context_uload(PCB *pcb, const char *filename, char *const argv[], char *const envp[]) {
   protect(&pcb->as);
-    io_write(AM_GPU_FBDRAW, 0, 0, NULL, io_read(AM_GPU_CONFIG).width, io_read(AM_GPU_CONFIG).height, true);
 
   Area kstack = {
     .start = pcb->stack,
