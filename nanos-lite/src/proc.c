@@ -19,10 +19,14 @@ void hello_fun(void *arg) {
   }
 }
 
+#define SIMPLE_SCHEDULE
+
 void init_proc() {
   char *const argv[] = {"/bin/pal", "--skip", NULL};
-  // context_kload(&pcb[0], hello_fun, (void *)0x114514);
   context_uload(&pcb[0], "/bin/pal", argv, (char *const *){NULL});
+#if defined (SIMPLE_SCHEDULE)
+  context_kload(&pcb[1], hello_fun, (void *)0x114514);
+#endif
   switch_boot_pcb();
 
   Log("Initializing processes...");
@@ -31,6 +35,7 @@ void init_proc() {
   // naive_uload(NULL, ENTRY_BIN);
 }
 
+#if !defined (SIMPLE_SCHEDULE)
 static int current_proc = -1;
 
 Context* schedule(Context *prev) {
@@ -50,3 +55,15 @@ Context* schedule(Context *prev) {
   // 返回下一个进程的cp，进入新的上下文
   return current->cp;
 }
+#else
+Context* schedule(Context *prev) {
+  // save the context pointer
+  current->cp = prev;
+
+  // switch between pcb[0] and pcb[1]
+  current = (current == &pcb[0] ? &pcb[1] : &pcb[0]);
+
+  // then return the new context
+  return current->cp;
+}
+#endif
