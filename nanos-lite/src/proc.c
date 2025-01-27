@@ -19,7 +19,7 @@ void hello_fun(void *arg) {
   }
 }
 
-// #define SIMPLE_SCHEDULE
+#define SIMPLE_SCHEDULE
 
 void init_proc() {
   char *const argv[] = {NULL};
