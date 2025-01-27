@@ -22,7 +22,7 @@ Context* __am_irq_handle(Context *c) {
 
     switch (c->mcause) {
       case -1: ev.event = EVENT_YIELD; break;
-      case 0x80000007: ev.event = EVENT_IRQ_TIMER; break;
+      case 0x80000007: ev.event = EVENT_IRQ_TIMER; goto goto_skip_mepc_n; break;
       default: 
         printf("Unkown mcause code: 0x%8x(%d)\n", c->mcause); 
         ev.event = EVENT_ERROR; 
@@ -30,6 +30,9 @@ Context* __am_irq_handle(Context *c) {
     }
 
   goto_finished:
+    c->mepc += 4;
+
+  goto_skip_mepc_n:
     c = user_handler(ev, c);
     assert(c != NULL);
   }
