@@ -25,8 +25,8 @@ void hello_fun(void *arg) {
 void init_proc() {
   char *const argv[] = {NULL};
   context_uload(&pcb[0], "/bin/menu", argv, (char *const *){ NULL });
-  // context_kload(&pcb[1], hello_fun, (void *)0x114514);
   context_uload(&pcb[1], "/bin/hello", (char *const *){ NULL }, (char *const *){ NULL });
+  context_kload(&pcb[2], hello_fun, (void *)0x114514);
   switch_boot_pcb();
 
   Log("Initializing processes...");
