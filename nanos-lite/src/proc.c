@@ -31,8 +31,8 @@ void init_proc() {
   context_uload(&pcb[2], "/bin/pal", argv, (char *const *){ NULL });
   context_uload(&pcb[3], "/bin/nterm", (char *const *){ NULL }, (char *const *){ NULL });
 #else
-  context_uload(&pcb[0], "/bin/hello", (char *const *){ NULL }, (char *const *){ NULL });
-  context_uload(&pcb[1], ENTRY_BIN, (char *const *){ NULL }, (char *const *){ NULL });
+  context_uload(&pcb[1], "/bin/hello", (char *const *){ NULL }, (char *const *){ NULL });
+  context_uload(&pcb[0], ENTRY_BIN, (char *const *){ NULL }, (char *const *){ NULL });
   context_kload(&pcb[2], hello_fun, (void *)0x114514);
 #endif
   // context_kload(&pcb[3], hello_fun, (void *)0x114514);
