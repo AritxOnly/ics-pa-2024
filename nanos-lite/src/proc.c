@@ -21,12 +21,15 @@ void hello_fun(void *arg) {
 
 // #define SIMPLE_SCHEDULE
 // #define DIFFTEST_SCHEDULE
+#define MULTI_SCHEDULE
 
 void init_proc() {
-  char *const argv[] = {NULL};
-  context_uload(&pcb[0], "/bin/menu", argv, (char *const *){ NULL });
-  context_uload(&pcb[1], "/bin/hello", (char *const *){ NULL }, (char *const *){ NULL });
-  context_kload(&pcb[2], hello_fun, (void *)0x114514);
+  char *const argv[] = { "/bin/pal", "--skip", NULL };
+  context_uload(&pcb[0], "/bin/hello", (char *const *){ NULL }, (char *const *){ NULL });
+  context_uload(&pcb[1], "/bin/menu", (char *const *){ NULL }, (char *const *){ NULL });
+  context_uload(&pcb[2], "/bin/pal", argv, (char *const *){ NULL });
+  context_uload(&pcb[3], "/bin/nterm", (char *const *){ NULL }, (char *const *){ NULL });
+  // context_kload(&pcb[3], hello_fun, (void *)0x114514);
   switch_boot_pcb();
 
   Log("Initializing processes...");
@@ -52,6 +55,34 @@ Context* schedule(Context *prev) {
   return current->cp;
 }
 #else
+#if defined (MULTI_SCHEDULE)
+static int curr_idx = 1; 
+char ev_buf[32];
+static uint32_t cycle = 0;
+
+#define NUM_CYCLE 300
+
+Context* schedule(Context* prev) {
+  current->cp = prev;
+  
+  if (cycle % 10 == 0) {
+    events_read(ev_buf, 0, 31);
+  }
+
+  if (strcmp(ev_buf, "kd F1\n") == 0) curr_idx = 1;
+  if (strcmp(ev_buf, "kd F2\n") == 0) curr_idx = 2;
+  if (strcmp(ev_buf, "kd F3\n") == 0) curr_idx = 3;
+
+  curr_idx = (cycle == 0) ? 0 : curr_idx;
+
+  cycle++;
+  cycle %= NUM_CYCLE;
+
+  current = &pcb[curr_idx];
+
+  return current->cp;
+}
+#else
 static int current_proc = -1;
 
 Context* schedule(Context *prev) {
@@ -69,6 +100,7 @@ Context* schedule(Context *prev) {
   // 返回下一个进程的cp，进入新的上下文
   return current->cp;
 }
+#endif
 #endif
 #else
 Context* schedule(Context *prev) {
