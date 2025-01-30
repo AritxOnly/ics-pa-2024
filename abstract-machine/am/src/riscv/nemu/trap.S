@@ -13,7 +13,7 @@
 #endif
 
 #define REGS_LO16(f) \
-      f( 1)       f( 3) f( 4)       f( 6) f( 7) f( 8) f( 9) \
+      f( 1)       f( 3) f( 4) f( 5) f( 6) f( 7) f( 8) f( 9) \
 f(10) f(11) f(12) f(13) f(14) f(15)
 #ifndef __riscv_e
 #define REGS_HI16(f) \
@@ -31,45 +31,44 @@ f(30) f(31)
 #define PUSH(n) STORE concat(x, n), (n * XLEN)(sp);
 #define POP(n)  LOAD  concat(x, n), (n * XLEN)(sp);
 
-#define CONTEXT_SIZE  ((NR_REGS + 3 + 1 + 1) * XLEN)
+#define CONTEXT_SIZE  ((NR_REGS + 5) * XLEN)
 #define OFFSET_SP     ( 2 * XLEN)
-#define OFFSET_T0     ( 5 * XLEN)
 #define OFFSET_CAUSE  ((NR_REGS + 0) * XLEN)
 #define OFFSET_STATUS ((NR_REGS + 1) * XLEN)
 #define OFFSET_EPC    ((NR_REGS + 2) * XLEN)
+#define OFFSET_NPRIV  ((NR_REGS + 3) * XLEN)
 
-#define OFFSET_NPRV   ((NR_REGS + 3) * XLEN)
+#define PRIV_USER   1
+#define PRIV_KERNEL 0
 
 .align 3
 .globl __am_asm_trap
 __am_asm_trap:
   csrrw sp, mscratch, sp
+  bnez sp, prepare_context
+  csrr sp, mscratch
 
-  bnez sp, priv_is_usr
-
-  csrr  sp, mscratch
-  addi  sp, sp, -CONTEXT_SIZE
-  STORE t0, OFFSET_T0(sp)   # TODO:test 
-  csrr  t0, mscratch     # TODO:test 
-  STORE t0, OFFSET_SP(sp)   # TODO:test 
-
-  li t0, 0               # TODO:test 
-  STORE t0, OFFSET_NPRV(sp) # TODO:test 
-  j save_context
-
-priv_is_usr:
+prepare_context:
   addi sp, sp, -CONTEXT_SIZE
-  STORE t0, OFFSET_T0(sp)   # TODO: test 
-  csrr  t0, mscratch     # TODO: test
-  STORE t0, OFFSET_SP(sp)   # TODO: test
 
-  li t0, 1               # TODO: test
-  STORE t0, OFFSET_NPRV(sp) # TODO: test
+  # 保存t0，防止出错
+  STORE t0, OFFSET_SP(sp)
+
+  csrr t0, mscratch
+  STORE t0, OFFSET_SP(sp)
+  bnez t0, set_user
+  li t0, PRIV_KERNEL
   j save_context
 
+set_user:
+  li t0, PRIV_USER
 
 save_context:
-  csrw mscratch, zero
+  STORE t0, OFFSET_NPRIV(sp)
+
+  # 目前处于内核态
+  li t0, 0
+  csrw mscratch, t0
 
   MAP(REGS, PUSH)
 
@@ -87,9 +86,10 @@ save_context:
   csrw mstatus, t1
 
   mv a0, sp
-  jal __am_irq_handle
+  call __am_irq_handle
 
-  # move stack to new contex
+restore_context:
+  # 切换到新的Context指针处
   mv sp, a0
 
   LOAD t1, OFFSET_STATUS(sp)
@@ -97,15 +97,15 @@ save_context:
   csrw mstatus, t1
   csrw mepc, t2
 
+  LOAD t0, OFFSET_NPRIV(sp)
+  beqz t0, restore_gprs
+
+  # 否则为用户态
+  addi t1, sp, CONTEXT_SIZE
+  csrw mscratch, t1
+
+restore_gprs:
   MAP(REGS, POP)
 
-  LOAD t0, OFFSET_NPRV(sp) # TODO: test
   addi sp, sp, CONTEXT_SIZE
-  beqz t0, join_ret # TODO: test
-  csrw mscratch, sp
-
-join_ret:
-  LOAD t0, (OFFSET_T0-CONTEXT_SIZE)(sp) # TODO: test
-  LOAD sp, (OFFSET_SP-CONTEXT_SIZE)(sp)
-
   mret
