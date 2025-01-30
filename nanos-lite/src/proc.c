@@ -91,16 +91,12 @@ Context* schedule(Context* prev) {
 }
 #else
 static int current_proc = -1;
-static int cycle = 0;
-
-#define NUM_CYCLE 300
 
 Context* schedule(Context *prev) {
   current->cp = prev;
 
   // 切换到下一个非空的PCB进程
   do {
-    cycle = (cycle + 1) % NUM_CYCLE;
     current_proc = (current_proc + 1) % MAX_NR_PROC;
     current = &pcb[current_proc];   // 更新全局指针
     // Log("current_proc = %d, current = %p, current->cp = %p", current_proc, current, current->cp);
