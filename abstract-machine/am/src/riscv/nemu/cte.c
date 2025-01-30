@@ -66,6 +66,7 @@ Context *kcontext(Area kstack, void (*entry)(void *), void *arg) {
   context->gpr[2]   = sp;
   context->mepc     = (uintptr_t)entry;
   context->mstatus  = MSTATUS_MMP | MSTATUS_MPIE;
+  context->npriv    = 0;
   context->pdir     = NULL;
   context->gpr[10]  = (uintptr_t)arg;
 
