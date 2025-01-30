@@ -70,9 +70,9 @@ Context* schedule(Context* prev) {
   events_read(ev_buf, 0, 31);
   Log("ev_buf == %s", ev_buf);
 
-  if (strcmp(ev_buf, "kd F1\n") == 0) curr_idx = 1;
-  if (strcmp(ev_buf, "kd F2\n") == 0) curr_idx = 2;
-  if (strcmp(ev_buf, "kd F3\n") == 0) curr_idx = 3;
+  if (strcmp(ev_buf, "ku F1") == 0) curr_idx = 1;
+  if (strcmp(ev_buf, "ku F2") == 0) curr_idx = 2;
+  if (strcmp(ev_buf, "ku F3") == 0) curr_idx = 3;
 
   curr_idx = (cycle == 0) ? 0 : curr_idx;
 
