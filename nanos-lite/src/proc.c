@@ -64,6 +64,8 @@ static uint32_t cycle = 0;
 
 Context* schedule(Context* prev) {
   current->cp = prev;
+
+  Log("cycle = %d, curr_idx = %d", cycle, curr_idx);
   
   if (cycle % 10 == 0) {
     events_read(ev_buf, 0, 31);
