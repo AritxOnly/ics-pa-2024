@@ -67,10 +67,8 @@ Context* schedule(Context* prev) {
 
   Log("cycle = %d, curr_idx = %d", cycle, curr_idx);
   
-  if (cycle % 10 == 0) {
-    events_read(ev_buf, 0, 31);
-    Log("ev_buf == %s", ev_buf);
-  }
+  events_read(ev_buf, 0, 31);
+  Log("ev_buf == %s", ev_buf);
 
   if (strcmp(ev_buf, "kd F1\n") == 0) curr_idx = 1;
   if (strcmp(ev_buf, "kd F2\n") == 0) curr_idx = 2;
