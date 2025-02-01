@@ -5,9 +5,11 @@
 #include <unistd.h>
 #include <sys/time.h>
 #include <fcntl.h>
+#include <assert.h>
 
 static int evtdev = -1;
 static int fbdev = -1;
+static int sbdev = -1;
 static int screen_w = 0, screen_h = 0;
 static int canvas_w = 0, canvas_h = 0;
 
@@ -88,17 +90,42 @@ void NDL_DrawRect(uint32_t *pixels, int x, int y, int w, int h) {
 }
 
 void NDL_OpenAudio(int freq, int channels, int samples) {
+  int fd = open("/dev/sbctl", O_WRONLY);
+  int sbinfo[] = { freq, channels, samples };
+  write(fd, sbinfo, 3 * sizeof(int));
+  close(fd);
+
+  sbdev = open("/dev/sb", O_WRONLY);
+  assert(sbdev >= 0);
 }
 
 void NDL_CloseAudio() {
+  if (sbdev >= 0) {
+    close(sbdev);
+    sbdev = -1;
+  }
 }
 
 int NDL_PlayAudio(void *buf, int len) {
-  return 0;
+  if (sbdev < 0) {
+    return 0;
+  }
+
+  ssize_t write_len = write(sbdev, buf, len);
+  assert(write_len >= 0);
+  return write_len;
 }
 
 int NDL_QueryAudio() {
-  return 0;
+  int fd = open("/dev/sbctl", O_RDONLY);
+
+  int free = 0;
+  ssize_t read_len = read(fd, &free, sizeof(int));
+  assert(read_len == sizeof(int));
+
+  close(fd);
+
+  return free;
 }
 
 int NDL_Init(uint32_t flags) {

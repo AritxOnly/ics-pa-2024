@@ -6,6 +6,8 @@
 #include <stdlib.h>
 
 void SDL_BlitSurface(SDL_Surface *src, SDL_Rect *srcrect, SDL_Surface *dst, SDL_Rect *dstrect) {
+  CallbackHelper();
+
   assert(dst && src);
   assert(dst->format->BitsPerPixel == src->format->BitsPerPixel);
 
@@ -55,6 +57,8 @@ void SDL_BlitSurface(SDL_Surface *src, SDL_Rect *srcrect, SDL_Surface *dst, SDL_
 }
 
 void SDL_FillRect(SDL_Surface *dst, SDL_Rect *dstrect, uint32_t color) {
+  CallbackHelper();
+
   int w, h, x, y;
   if (dstrect) {
     x = dstrect->x;
@@ -102,6 +106,8 @@ void SDL_FillRect(SDL_Surface *dst, SDL_Rect *dstrect, uint32_t color) {
 }
 
 void SDL_UpdateRect(SDL_Surface *s, int x, int y, int w, int h) {
+  CallbackHelper();
+
   // assert(0 && "Reached SDL_UpdateRect in miniSDL");
   if (w == 0 || h == 0) {
     // 默认为更新整个屏幕

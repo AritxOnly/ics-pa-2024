@@ -16,7 +16,7 @@ typedef struct {
   // bool opened;
 } Finfo;
 
-enum {FD_STDIN, FD_STDOUT, FD_STDERR, FD_EVENTS, FD_FBINFO, FD_FB};
+enum { FD_STDIN, FD_STDOUT, FD_STDERR, FD_EVENTS, FD_FBINFO, FD_FB, FD_SB, FD_SBCTL };
 
 size_t invalid_read(void *buf, size_t offset, size_t len) {
   panic("should not reach here");
@@ -36,6 +36,8 @@ static Finfo file_table[] __attribute__((used)) = {
   [FD_EVENTS] = {"/dev/events", 0, 0, 0, events_read, invalid_write},
   [FD_FBINFO] = {"/proc/dispinfo", 0, 0, 0, dispinfo_read, invalid_write},
   [FD_FB] = {"/dev/fb", 0, 0, 0, invalid_read, fb_write},
+  [FD_SB] = {"/dev/sb", 0, 0, 0, invalid_read, sb_write},
+  [FD_SBCTL] = {"/dev/sbctl", 0, 0, 0, sbctl_read, sbctl_write},
 #include "files.h"
 };
 
@@ -98,6 +100,7 @@ size_t fs_read(int fd, void *buf, size_t len) {
   switch (fd) {
     case FD_STDIN: case FD_STDOUT: case FD_STDERR:
     case FD_EVENTS: case FD_FBINFO: case FD_FB:
+    case FD_SB: case FD_SBCTL:
       read_len = f->read(buf, 0, len);
       break;
     default:
@@ -130,6 +133,7 @@ size_t fs_write(int fd, const void *buf, size_t len) {
   switch (fd) {
     case FD_STDIN: case FD_STDOUT: case FD_STDERR:
     case FD_EVENTS: case FD_FBINFO:
+    case FD_SB: case FD_SBCTL:
       write_len = f->write(buf, 0, len);
       break;
     case FD_FB:

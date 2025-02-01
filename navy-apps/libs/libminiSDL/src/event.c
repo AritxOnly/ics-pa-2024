@@ -17,6 +17,8 @@ int SDL_PushEvent(SDL_Event *ev) {
 }
 
 int SDL_PollEvent(SDL_Event *ev) {
+  CallbackHelper();
+
   if (ev == NULL) {
     printf("Invalid event\n");
     return 0;
