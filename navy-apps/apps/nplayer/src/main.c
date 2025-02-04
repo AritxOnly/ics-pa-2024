@@ -80,8 +80,6 @@ int main(int argc, char *argv[]) {
   SDL_FillRect(screen, NULL, 0);
   SDL_UpdateRect(screen, 0, 0, 0, 0);
 
-  printf("I reached here");
-
   FILE *fp = fopen(MUSIC_PATH, "r");
   assert(fp);
   fseek(fp, 0, SEEK_END);
